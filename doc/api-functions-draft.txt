@@ -52,23 +52,74 @@ get x number of most recent messages matching chat_sesh_id from message table
 
 
 ------------------------
-Notes:
+Restrictions/Rules:
 
-- No session state in cli version. We authenticate, and then manually send token during each api request
+- usernames are unique
 
-- When using apps like slack or whatsapp, a lot of things are automatically done by the user through GUI's, for example, selecting a chat session to send a message to from a list of chat sessions. At this stage, we want the CLI experience to be smooth, but will not over-optimize for the CLI since we have a planned GUI.
+- groupnames are unique
+
+
+
+
+------------------------
+To figure out:
+
+- User wants to send a message to a username/groupname. How do we internally map the username/groupname to a chat_sesh_id? 
+
+Difficult because:
+usernames are unique but groupnames are not
+1-1 chats and group chats are stored in the same table                    
+
+If we have different tables for 1-1 chats and group chats, searching for 1-1 chat session ids becomes easy:
+username -> userid -> chat_sesh_id
+
+For groupchats, should we then enforce unique names?
+For example, Slack only allows unique channel names. 
+
+Let's do unique groupnames.
+
+groupname ->
+
+
+
+
+------------------------
+Sample scenario:
+
+- shivam wants to send a 1-1 message to shahn for the first time.
+pre-req: shivam and shahn are friends
+
+Check if 1-1 chat session between shahn/shivam exists.
+If does not exit, create a new chat session.
+If it does exist, use existing chat session.
+Send a message with that chat_sesh_id.
+
+- Shivam wants to send a message in a group chat:
+
+Shivam pulls list of existing chat sessions.
+Chooses 
+Shivam needs group chat name (or chat_sesh_id?)
+
+
+
+------------------------
+Random Notes:
+
+- No session state in cli version. We authenticate, and then manually send token during each api request.
+
+- When using apps like slack or whatsapp, a lot of things are naturally (without second thought) done by the user through GUI's, for example, selecting a chat session to send a message to from a list of chat sessions. We want the CLI experience to be smooth, and will optimize for the CLI even though we have a planned GUI.
 
 - Send message to a chat_sesh_id or username or groupname?
-User will figure out chat_sesh_id, same way as in a gui.
+User will figure out chat_sesh_id, same way as in a gui?
+Too clunky, will try to let user send message to username, without chat_sesh_id
+
 Have a different api for group chats?
 
-This will also affect the flow when initiating a 1-1 conversation for the first time. There needs to be an existing chat session before a message can be sent.
+This will also affect the flow when initiating a 1-1 conversation for the first time. There needs to be an existing chat session before a message can be sent. Will try to make the process smoother.
 
-Feels clunky, will try to make the process smoother.
+- redundancy?
 
-- how bad is redundancy in different tables? Okay to have redundancy to simplify application logic?
-
-combine chat_participant and chat tables into one table?
+combine chat_participant and chat_sesh tables into one table?
 
 - We need a separate friend table. 
 When we delete a friend, the original friend request should stay in a accepted state.
