@@ -1,0 +1,133 @@
+Chaat Data Modelling:
+
+------------------------
+Table: user
+
+user_id			int
+user_name		string
+dynamic_salt	string
+pwd_hash		string 
+join_date		timestamp
+display_picture string
+
+user_id  user_name  dynamic_salt   pwd_hash        join_date         display_picture
+  00       shahn         abc         sx82     2022-11-15 12:00:00       file link
+  01      shivam         bbc         jx83     2022-11-16 12:00:00       file link
+  02        udit         cbc         dx84     2022-11-17 12:00:00       file link
+
+------------------------
+Table: friend_request
+
+request_id 	 int
+sent_date	 timestamp
+message 	 string (200 char limit)
+status		 pending/accepted/rejected
+from (FK)	 int
+to   (FK)    int
+
+request_id        sent_date		  message      status	 from  to
+    00 		2022-11-15 12:00:00     "hi"     "accepted"   00   01
+
+------------------------
+Table: friend
+
+(bidirectional relationship)
+
+id
+user1_id
+user2_id
+
+id  user1_id  user2_id
+0      00 		 01
+1 	   00   	 02
+2      01        02
+
+------------------------
+Table: chat_participant
+
+Tracks relationships between user_id and chat_sesh_id
+
+id 					int
+user_id	(FK)		int
+chat_sesh_id (FK)	int
+is_group_chat 		boolean
+	
+id   user_id       chat_sesh_id  is_group_chat
+00  00(shahn)  	      05			True
+01  01(shivam) 	      05			True
+02  02(udit)   	      06			False
+03  00(shahn)	      06			False
+04  02(udit) 	      05			True
+05  01(shivam)        07			False
+06  00(shahn)	      07			False
+
+
+------------------------
+Table: chat_sesh
+
+Table of existing chat sessions/rooms/groups.
+
+chat_sesh_id 	int 
+name 			string
+creation_time	timestamp
+is_group_chat	boolean
+
+chat_sesh_id       name 		   creation_time        is_group_chat
+  05 	         group-1       2022-11-15 12:00:00
+  06 	        udit/shahn     2022-11-16 12:00:00
+  07 	       shivam/shahn    2022-11-17 12:00:00
+
+------------------------
+Table: message
+
+message_id			int
+chat_sesh_id (FK)	int
+sender  (FK)		int
+time 				timestamp
+text				string
+
+message_id  chat_sesh_id  sender      timestamp		      text
+   00 		     07 	    01    2022-11-15 12:00:00    "helloo"
+
+------------------------
+
+Sample scenario:
+
+- Shivam sends a 1-1 message to Shahn
+
+pre-req: Shahn and Shivam are already friends.
+
+Shivam needs shahn's username (or user_id or chat_sesh_id?)
+
+Check if 1-1 chat session between shahn/shivam exists.
+If does not exit, create a new chat.
+If it does exist, use existing chat.
+Send a message with that chat_sesh_id
+
+- Shivam wants to send a message in a group chat:
+
+Shivam pulls list of existing chat sessions.
+Chooses 
+Shivam needs group chat name (or chat_sesh_id?)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

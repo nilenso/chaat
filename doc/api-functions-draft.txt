@@ -1,0 +1,81 @@
+Chaat API rough draft:
+
+Functionality:
+
+- Create user account
+add record to user table
+
+- Login/generate authentication token
+provide username and password, authenticate and return token
+
+- Get list of all registered users
+get from user table
+
+- Get list of all your friend requests (pending/accepted/rejected)
+get from friend_request table
+
+- Send friend request
+add record to friend_request table
+
+- Respond to friend request (accept/reject)
+update status field of existing record in friend_request table
+add record to friend table
+
+- Get list of all your fiends
+get from friend table
+
+- Delete a friend
+delete record from friend table
+
+- Get list of all existing chat sessions
+get from chat_sesh table
+
+- Get list of chat sessions which have a particular userid as a participant
+get from chat_participant table
+
+- Get list of participants for a particular chat session
+get from chat_participant table
+
+- Create a 1-1 chat
+Add record to chat_sesh
+Add 2 records to chat_participant
+
+- Create a group chat with x people
+Add record to chat_sesh
+Add x records to chat_participant
+
+- Send message
+add record to message table
+
+- Get x number of messages from chat session
+get x number of most recent messages matching chat_sesh_id from message table
+
+
+------------------------
+Notes:
+
+- No session state in cli version. We authenticate, and then manually send token during each api request
+
+- When using apps like slack or whatsapp, a lot of things are automatically done by the user through GUI's, for example, selecting a chat session to send a message to from a list of chat sessions. At this stage, we want the CLI experience to be smooth, but will not over-optimize for the CLI since we have a planned GUI.
+
+- Send message to a chat_sesh_id or username or groupname?
+User will figure out chat_sesh_id, same way as in a gui.
+Have a different api for group chats?
+
+This will also affect the flow when initiating a 1-1 conversation for the first time. There needs to be an existing chat session before a message can be sent.
+
+Feels clunky, will try to make the process smoother.
+
+- how bad is redundancy in different tables? Okay to have redundancy to simplify application logic?
+
+combine chat_participant and chat tables into one table?
+
+- We need a separate friend table. 
+When we delete a friend, the original friend request should stay in a accepted state.
+
+- Notification system (Phase 2)
+2 options:
+Triggered in db when record is added
+OR triggered in app logic <-- standard/more control
+(transaction commits, post transaction commit, post commit callback)
+
