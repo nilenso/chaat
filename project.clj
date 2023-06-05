@@ -8,11 +8,7 @@
                  [ring/ring-jetty-adapter "1.10.0"]
                  [ring/ring-devel "1.10.0"]
                  [bidi "2.1.6"]
-                 ;;[metosin/reitit "0.7.0-alpha4"]
-                 [compojure "1.7.0"]
                  [clj-time "0.15.2"]]
-                 ;;[bidi "2.1.6"]
-                 ;;[ring "1.9.0"]]
   :plugins [[lein-ring "0.12.5"]]
   :ring {:handler chaat.handler/handler}
   :main ^:skip-aot chaat.core
