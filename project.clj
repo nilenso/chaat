@@ -11,7 +11,7 @@
                  [clj-time "0.15.2"]]
   :plugins [[lein-ring "0.12.5"]]
   :ring {:handler chaat.handler/handler}
-  :main ^:skip-aot chaat.core
+  :main ^:skip-aot chaat.app
   :target-path "target/%s"
   :profiles {:uberjar {:aot :all
                        :jvm-opts ["-Dclojure.compiler.direct-linking=true"]}})

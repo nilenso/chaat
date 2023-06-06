@@ -9,12 +9,24 @@
   (-> #'handler
       wrap-reload))
 
+;; use future/delay/atom
+
+(defonce server (atom app))
+;; (defonce server (atom (jetty/run-jetty app {:port 3000
+;;                                         :join? false})))
+
+(defn start-server
+  [val]
+  (jetty/run-jetty app {:port 3000
+                        :join? false}))
 
 (defn -main
   "i am main"
   [& args]
-  (defonce server (jetty/run-jetty app {:port 8080
-                                        :join? false})))
+  (swap! server start-server))
+
+  ;; (defonce server (jetty/run-jetty app {:port 3000
+  ;; :join? false})))
 ;; using def in a function is not good, will fix this
 
 ;; (.stop server)
