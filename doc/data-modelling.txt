@@ -1,46 +1,111 @@
-Chaat Data Modelling:
+Chaat Phase 1 Data Model:
+
+- Only supports direct messages between 2 users, no group chats
 
 ------------------------
 Table: user
 
-user_id             int
-user_name           string
-dynamic_salt        string
-pwd_hash            string 
+user_id             uuid             
+username            text
+dynamic_salt        text
+pwd_hash            text 
 join_date           timestamp
-display_picture     string
+display_picture     text
 
-user_id  user_name   dynamic_salt   pwd_hash        join_date         display_picture
-  00       shahn         abc          sx82     2022-11-15 12:00:00     link-to-file
-  01      shivam         bbc          jx83     2022-11-16 12:00:00     link-to-file
-  02        udit         cbc          dx84     2022-11-17 12:00:00     link-to-file
+user_id   username   dynamic_salt   pwd_hash        join_date            display_picture
+  00      'shahn'        abc          sx82     2022-11-15 12:00:00     /display-pictures/00
+  01      'shivam'       bbc          jx83     2022-11-16 12:00:00     /display-pictures/01
+  02       'udit'        cbc          dx84     2022-11-17 12:00:00     /display-pictures/02
 
+- Will first manually implement authentication, and then perhaps refactor to use oauth later
+ 
 ------------------------
 Table: friend_request
 
-request_id   int
+request_id   uuid
 sent_date    timestamp
-message      string (200 char limit)
-status       pending/accepted/rejected
-from (FK)    int
-to   (FK)    int
+greeting     text
+status       text
+from         uuid (FK, user_id from user table)
+to           uuid (FK, user_id from user table)
 
-request_id     sent_date           message     status     from  to
-   00       2022-11-15 12:00:00     "hi"     "accepted"    00   01
+request_id      sent_date          greeting    status     from   to
+   00       2022-11-15 12:00:00      'hi'     'pending'    00    01
+
+- 200 char limit on greeting
+- status = pending/accepted/rejected/withdrawn
 
 ------------------------
 Table: friend
 
-(bidirectional relationship)
+id         uuid
+user1      uuid (FK, user_id from user table)
+user2      uuid (FK, user_id from user table)
 
-id
-user1_id
-user2_id
+id    user1     user2
+00     00        01
+01     00        02
+02     01        02
 
-id  user1_id  user2_id
-0      00        01
-1      00        02
-2      01        02
+- Bidirectional relationship: user1 <-> user2
+
+------------------------
+Table: direct_chat_session
+
+id              uuid
+session_name    text
+user1           uuid (FK, id from user table)
+user2           uuid (FK, user_id from user table)
+creation_time   timestamp
+
+id         session/name    user1  user2        creation_time      
+06          udit/shahn      02     00       2022-11-16 12:00:00       
+07         shivam/shahn     01     00       2022-11-17 12:00:00  
+
+- Tracks existing direct message chat sessions
+
+------------------------
+Table: direct_message
+
+message_id           uuid
+chat_session         uuid (FK, chat_session_id from direct_chat_session table)
+sender               uuid (FK, user_id from user table)
+sent_time            timestamp
+text                 text
+
+message_id  direct_chat_session  sender      sent_time            text
+   00                07            01    2022-11-15 12:00:00    'helloo'
+
+
+------------------------
+xxxxxxxxxxxxxxxxxxxxxxxx
+------------------------
+
+Rough notes for phase 2 model development work to support group-chat: 
+
+
+----
+Table: friend status table (one way to combine the 2 tables: friend_request and friend)
+
+request_id     sent_date           message     status     from  to
+   00       2022-11-15 12:00:00     "hi"      "deleted"    00    01
+
+
+------------------------
+Table: friend_request
+
+request_id   uuid
+sent_date    timestamp
+message      text
+status       pending/accepted/rejected/withdrawn-by-sender
+from (FK, user_id)    bigint/uuid
+to   (FK, user_id)    int
+
+request_id     sent_date           message     status     from  to
+   00       2022-11-15 12:00:00     "hi"     "pending"    00    01
+
+- 200 char limit on message
+- status = pending/accepted/rejected
 
 ------------------------
 Table: chat_participant
@@ -52,16 +117,39 @@ user_id (FK)          int
 chat_sesh_id (FK)     int
 is_group_chat         boolean
     
-id   user_id       chat_sesh_id  is_group_chat
-00  00(shahn)         05            True
-01  01(shivam)        05            True
-02  02(udit)          06            False
-03  00(shahn)         06            False
-04  02(udit)          05            True
-05  01(shivam)        07            False
-06  00(shahn)         07            False
+participant_id   user_id       chat_sesh_id  is_group_chat
+     00          00(shahn)          05            True
+     01          01(shivam)         05            True
+     02          02(udit)           06            False
+     03          00(shahn)          06            False
+     04          02(udit)           05            True
+     05          01(shivam)         07            False
+     06          00(shahn)          07            False
+     06          03(atharva)        07            False  INVALID
+
+
+#Table: direct_chat_participant
+
+id   userid      chat_sesh_id  
+00  00(shahn)         06            
+01  01(shivam)        06            
+02  02(udit)          05           
+03  00(shahn)         09            
+04  02(udit)          09       
+
+#Table: group_chat_participant
+
+id   user_id       chat_sesh_id  
+00  00(shahn)         05            
+01  01(shivam)        05            
+02  02(udit)          05           
+03  00(shahn)         09            
+04  02(udit)          09            
 
 ------------------------
+(integer data types as ids, alternatives)
+
+
 Table: chat_sesh
 
 Table of existing chat sessions/rooms/groups.
@@ -71,22 +159,32 @@ name            string
 creation_time   timestamp
 is_group_chat   boolean
 
+# COMBINE TABLE
 chat_sesh_id       name           creation_time        is_group_chat
-    05           group-1       2022-11-15 12:00:00
-    06          udit/shahn     2022-11-16 12:00:00
-    07         shivam/shahn    2022-11-17 12:00:00
+    05           group-1       2022-11-15 12:00:00         True
+    06          udit/shahn     2022-11-16 12:00:00         False
+    07         shivam/shahn    2022-11-17 12:00:00         False
+    08_group-2
+    09_group-2
 
-------------------------
-Table: message
 
-message_id          int
-chat_sesh_id (FK)   int
-sender  (FK)        int
-time                timestamp
-text                string
+#Table: direct_chat_sesh
 
-message_id  chat_sesh_id  sender      timestamp            text
-   00            07         01    2022-11-15 12:00:00    "helloo"
+chat_sesh_id       name       user1   user2         creation_time      
+    06          udit/shahn      02     00       2022-11-16 12:00:00       
+    07         shivam/shahn     01     00       2022-11-17 12:00:00       
+
+#Table: group_chat_sesh
+
+chat_sesh_id       name              creation_time        
+    05            group-5        2022-11-16 12:00:00         
+    09            group-9        2022-11-17 12:00:00   
+
+
+1. atharva -> shahn DM
+2. is there an existing chat_sesh between atharva and shahn?
+
+1. you will get a list of groupchats
 
 ------------------------
 
@@ -108,25 +206,4 @@ Send a message with that chat_sesh_id
 Shivam pulls list of existing chat sessions.
 Chooses 
 Shivam needs group chat name (or chat_sesh_id?)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 

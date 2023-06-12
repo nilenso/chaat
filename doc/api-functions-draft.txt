@@ -1,5 +1,8 @@
-Chaat API rough draft:
+Chaat API Phase 1 rough draft:
 
+- Only supports direct messages, no group chats
+
+------------------------
 Functionality:
 
 - Create user account
@@ -11,11 +14,14 @@ provide username and password, authenticate and return token
 - Get list of all registered users
 get from user table
 
-- Get list of all your friend requests (pending/accepted/rejected)
+- Get list of all your friend requests (pending/accepted/rejected/withdrawn)
 get from friend_request table
 
 - Send friend request
 add record to friend_request table
+
+- Withdraw friend request
+update status field of existing record in friend_request_table
 
 - Respond to friend request (accept/reject)
 update status field of existing record in friend_request table
@@ -27,8 +33,33 @@ get from friend table
 - Delete a friend
 delete record from friend table
 
-- Get list of all existing chat sessions
-get from chat_sesh table
+- Get list of all existing direct chat sessions
+get from direct_chat_session table
+
+- Create a direct chat
+add record to direct_chat_session table
+
+- Get list of users in a direct_chat_session
+get from direct_chat_session table
+
+- Send message to a username
+add record to direct_message table
+
+- Get x number of messages from direct_chat_session
+get x number of most recent messages matching direct_chat_session id from direct_message table
+
+- Get all messages since timestamp in a direct chat_session
+get from direct_message table
+
+- Get all unread messages from a direct chat session (Phase 2)
+
+
+------------------------
+Sample scenarios:
+
+
+----------
+Phase 2 functionality: 
 
 - Get list of chat sessions which have a particular userid as a participant
 get from chat_participant table
@@ -36,39 +67,30 @@ get from chat_participant table
 - Get list of participants for a particular chat session
 get from chat_participant table
 
-- Create a 1-1 chat
-Add record to chat_sesh
-Add 2 records to chat_participant
-
 - Create a group chat with x people
 Add record to chat_sesh
 Add x records to chat_participant
-
-- Send message
-add record to message table
-
-- Get x number of messages from chat session
-get x number of most recent messages matching chat_sesh_id from message table
-
 
 ------------------------
 Restrictions/Rules:
 
 - usernames are unique
 
-- groupnames are unique
+- groupnames are unique (like slack channels)
 
+- groupname can be  == username
 
-
+- to send a message in a groupchat, it is not necessary to be friends with group participants
 
 ------------------------
+
 To figure out:
 
 - User wants to send a message to a username/groupname. How do we internally map the username/groupname to a chat_sesh_id? 
 
 Difficult because:
 usernames are unique but groupnames are not
-1-1 chats and group chats are stored in the same table                    
+1-1 chats and group chats are stored in the same table, and user_ids can be common.                    
 
 If we have different tables for 1-1 chats and group chats, searching for 1-1 chat session ids becomes easy:
 username -> userid -> chat_sesh_id
@@ -78,36 +100,49 @@ For example, Slack only allows unique channel names.
 
 Let's do unique groupnames.
 
-groupname ->
-
-
-
-
 ------------------------
 Sample scenario:
 
 - shivam wants to send a 1-1 message to shahn for the first time.
-pre-req: shivam and shahn are friends
 
-Check if 1-1 chat session between shahn/shivam exists.
+Check if shivam and shahn are friends
+* Check if 1-1 chat session between shahn/shivam exists. 
+(1-1 chat sesh table)
 If does not exit, create a new chat session.
 If it does exist, use existing chat session.
 Send a message with that chat_sesh_id.
 
 - Shivam wants to send a message in a group chat:
 
-Shivam pulls list of existing chat sessions.
+prereq: Shivam knows the group chat name
+
+get chat_sesh_id from group_chat_sesh table
+send a message with that chat_sesh_id
+
+- Shiv
+
+
+Get the participants from group_chat_participants
+
+
+Shivam pulls list of existing group chat sessions.
 Chooses 
+
+/groupchat/message
 Shivam needs group chat name (or chat_sesh_id?)
 
-
+- Shivam wants to create a group
+Participant list: 00, 01, 02
+00 -> 01
+01 -> 02
+00 -> 02
 
 ------------------------
 Random Notes:
 
 - No session state in cli version. We authenticate, and then manually send token during each api request.
 
-- When using apps like slack or whatsapp, a lot of things are naturally (without second thought) done by the user through GUI's, for example, selecting a chat session to send a message to from a list of chat sessions. We want the CLI experience to be smooth, and will optimize for the CLI even though we have a planned GUI.
+- When using apps like slack or whatsapp, a lot of things are naturally (without second thought) done by the user through GUI's, for example, selecting a chat session to send a message to from a list of chat sessions. 
 
 - Send message to a chat_sesh_id or username or groupname?
 User will figure out chat_sesh_id, same way as in a gui?
@@ -120,9 +155,6 @@ This will also affect the flow when initiating a 1-1 conversation for the first 
 - redundancy?
 
 combine chat_participant and chat_sesh tables into one table?
-
-- We need a separate friend table. 
-When we delete a friend, the original friend request should stay in a accepted state.
 
 - Notification system (Phase 2)
 2 options:
