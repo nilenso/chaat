@@ -1,19 +1,20 @@
 (ns chaat.app
-  (:require [chaat.handler :refer [handler]]
-            [ring.middleware.reload :refer [wrap-reload]]
+  (:require [ring.middleware.reload :refer [wrap-reload]]
             [ring.adapter.jetty :as jetty]
-            [clojure.pprint :as pprint])
+            [chaat.routes :as routes]
+            [bidi.ring :refer [make-handler]])
   (:gen-class))
 
+(def handler
+  (make-handler routes/routes))
+
+;; why does this only work with a var?
+;; look into how clojure reloads namespaces
 (def app
   (-> #'handler
       wrap-reload))
 
-;; use future/delay/atom
-
-(defonce server (atom app))
-;; (defonce server (atom (jetty/run-jetty app {:port 3000
-;;                                         :join? false})))
+(defonce server (atom nil))
 
 (defn start-server
   [val]
@@ -24,10 +25,6 @@
   "i am main"
   [& args]
   (swap! server start-server))
-
-  ;; (defonce server (jetty/run-jetty app {:port 3000
-  ;; :join? false})))
-;; using def in a function is not good, will fix this
 
 ;; (.stop server)
 ;; (.start server)
