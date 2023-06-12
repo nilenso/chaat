@@ -1,26 +1,21 @@
 (ns chaat.handler
-  (:require [bidi.ring :refer (make-handler)]
-            [ring.util.response :as res]
+  (:require [ring.util.response :as res]
             [clj-time.local :as l]))
 
-(defn home-handler
+(defn home
   [request]
   (res/response "Welcome to chaat"))
 
-(defn health-check-handler
+(defn health-check
   [request]
-  (->> (l/local-now)
-       (str "Service is up and running: ")
-       res/response
-       str
+  (->> (str "Service is running: " (l/local-now))
        res/response))
-;; I wanted to see display the response contents
 
-(defn test-page-handler
+(defn test-page
   [request]
   (res/response (str request)))
 
-(def handler
-  (make-handler ["/" {"" home-handler
-                      "health-check" health-check-handler
-                      "test-page" test-page-handler}]))
+(defn not-found
+  [request]
+  (res/not-found "Resource does not exist"))
+
