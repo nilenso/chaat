@@ -8,8 +8,6 @@
 (def handler
   (make-handler routes/routes))
 
-;; why does this only work with a var?
-;; look into how clojure reloads namespaces
 (def app
   (-> #'handler
       wrap-reload))
@@ -22,7 +20,6 @@
                         :join? false}))
 
 (defn -main
-  "i am main"
   [& args]
   (swap! server start-server))
 
