@@ -23,5 +23,8 @@
   [& args]
   (swap! server start-server))
 
-;; (.stop server)
-;; (.start server)
+;; use these cmds to start and stop server from repl
+(comment
+  (.start @server)
+  (.stop @server))
+
