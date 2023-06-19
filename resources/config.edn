@@ -1,0 +1,10 @@
+{:pg-db {:dbtype "postgresql"
+         :dbname "chaat-db"
+         :user "chaat-dev"
+         :password "password"
+         :host "127.0.0.1"
+         :port 8001}
+ :app {:default-timezone "Etc/UTC"
+       :static-salt "3Y6R+ewb7uI="}}
+
+
