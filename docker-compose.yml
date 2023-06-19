@@ -1,0 +1,15 @@
+version: '3.8'
+services:
+  db:
+    image: postgres:16beta1
+    ports:
+      - "8001:5432"
+    restart: always
+    environment:
+      TZ: Etc/UTC
+      PGTZ: Etc/UTC
+      POSTGRES_PASSWORD: password
+      POSTGRES_USER: chaat-dev
+      POSTGRES_DB: chaat-db
+
+# look into configurable ports using env variables $
