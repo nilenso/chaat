@@ -1,60 +1,74 @@
 (ns chaat.model.user
-  (:require [clojure.java.jdbc :as jdbc]
-            [chaat.config :as config :refer [pg-db]]
-            [crypto.password.bcrypt :as pwd]
-            [next.jdbc.sql :as next.jdbc.sql]
-            [next.jdbc.result-set :as rs]
-            [clj-time.local :as l]
-            [clojure.java.jdbc :as sql]))
-
-(defn user-exists?
-  "Check if username exists in username column of users table"
-  [username]
-  (let [query ["SELECT exists (SELECT 1 FROM users WHERE username = ? LIMIT 1);" username]
-        result (jdbc/query pg-db query)]
-    (:exists (first result))))
-
-;; Note: validation is different from authentication
-;; Add more checks later: special characters etc.
-(defn validate-username
-  "Check length and uniqueness of username"
-  [username]
-  (if (and (not user-exists?) (>= (count username) 2))
-    true false))
-
-;; Add more restrictions later: Caps, special characters etc.
-(defn validate-password
-  "Check length of password"
-  [password]
-  (>= (count password) 8))
-
-(defn create-user
-  "Create a user and add user info to db"
-  [username password]
-  (let [valid-username (validate-username username)
-        valid-password (validate-password password)
-        dynamic-salt nil
-        password-hash (pwd/encrypt password)
-        join-date nil
-        display-picture nil]
-    (try
-      (jdbc/insert! (:pg-db config/app-config) :users {:username username
-                                                       :dynamic_salt dynamic-salt
-                                                       :pwd_hash password-hash
-                                                       :join_date join-date
-                                                       :display_picture display-picture})
-      (catch Exception e [false (str e)]))))
-
-(defn delete-user
-  "Delete user account and remove user info from db"
-  [username]
-  (jdbc/delete! pg-db :users ["username = ?" username]))
-
-;; (jdbc/query pg-db ["SELECT exists (SELECT 1 FROM users WHERE username = ? LIMIT 1);" "shahn"])
-;; (jdbc/query pg-db ["SELECT exists (SELECT 1 FROM ? WHERE ? = ? LIMIT 1);" "users" "username" "shahn"])
-;; (jdbc/execute! pg-db ["INSERT INTO ? (?) VALUES (?)" "shivam"])
-;; (jdbc/query pg-db ["SELECT ? FROM ? WHERE ? = ? LIMIT (?)" 1 "users" "username" "shahn" 1])
+  (:require
+   [chaat.config :as config :refer [pg-db]]
+   [crypto.password.bcrypt :as pwd]
+   [crypto.random :as random]
+   [next.jdbc :as jdbc]
+   [next.jdbc.sql :as sql]
+   [next.jdbc.date-time]
+   [java-time.api :as jt]))
 
 ;; what sort of values should functions in my model layer return to the handlers
 ;; this will be for the handler to decide whether to send a good/bad response
 
+;; 2 ways to organize
+;; by mechanism (db operation etc.)
+;; by property (uniqueness is a property of a user (username))
+
+(defn new-user?
+  "Check if username does not exist in username column of user table.
+   If username does not exist, return true, else false."
+  [username]
+  (empty? (sql/find-by-keys pg-db :users {:username username})))
+
+(defn gen-new-user-map
+  [username password]
+  (let [static-salt config/static-salt
+        dynamic-salt (crypto.random/base64 8)
+        salted-password (str password static-salt dynamic-salt)]
+    {:username username
+     :dynamic_salt dynamic-salt
+     :password_hash (pwd/encrypt salted-password)
+     :creation_timestamp (jt/instant)
+     :display_picture nil}))
+
+;; create a separate db layer.
+;; db layer will be responsible for making sense of the map received
+;; can have another translation layer which the db layer will call
+
+;; repeated, will make something like a helper.clj for these functions
+(defn build-result-map
+  [success message description]
+  {:success success
+   :message message
+   :description description})
+
+;; Can use :pre and :post for validation with assertion errors
+(defn create-user
+  "Create a user and add user info to db"
+  [username password]
+  (try
+    (jdbc/with-transaction [tx pg-db]
+      (if (new-user? username)
+        (->> (sql/insert! tx :users (gen-new-user-map username password))
+             (build-result-map true nil))
+        (build-result-map false (str username " already exists") :username)))
+    ;; potentially only catch known exceptions here
+    (catch Exception e
+      (build-result-map false "PostgreSQL Exception" (str e)))))
+
+(defn delete-user
+  "Delete user account: remove user info from db"
+  [username]
+  (if (= 1 (:next.jdbc/update-count (sql/delete! pg-db :users {:username username})))
+    (build-result-map true (str "Successfully deleted " username) nil)
+    (build-result-map false (str "Error deleting " username) nil)))
+
+;; Repl testing code
+;; (sql/insert! pg-db :users (gen-new-user-map "uditm" "12345678"))
+
+;; (defn gen-test-users
+;;   []
+;;   (create-user "sezal" "12345678")
+;;   (create-user "udit" "12345678")
+;;   (create-user "shivam" "12345678"))
