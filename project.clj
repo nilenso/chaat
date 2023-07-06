@@ -14,7 +14,9 @@
                  [crypto-password "0.3.0"]
                  [crypto-random "1.2.1"]
                  [com.github.seancorfield/next.jdbc "1.3.874"]
-                 [clojure.java-time "1.2.0"]]
+                 [clojure.java-time "1.2.0"]
+                 [com.stuartsierra/component "1.1.0"]
+                 [com.zaxxer/HikariCP "5.0.1"]]
   :plugins [[lein-ring "0.12.5"]]
   :ring {:handler chaat.handler/handler}
   :main ^:skip-aot chaat.app
