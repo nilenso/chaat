@@ -3,15 +3,21 @@
             [clojure.edn :as edn])
   (:import (java.io PushbackReader)))
 
-(def app-config (with-open [f (io/reader "./resources/config.edn")]
-                  (->> f
-                       (PushbackReader.)
-                       (edn/read))))
+;; might not be too much of a advantage to use defn's instead of def's here
 
-;; defonce used to keep state between reloads. perhaps not necessary here.
-(defonce pg-db (:pg-db app-config))
-(def default-timezone (:default-timezone (:app app-config)))
-(def static-salt (:static-salt (:app app-config)))
+(defn get-app-config []
+  (with-open [f (io/reader "./resources/config.edn")]
+    (->> f
+         (PushbackReader.)
+         (edn/read))))
+
+(defn get-pg-dbspec []
+  (:pg-dbspec (get-app-config)))
+(defn get-static-salt []
+  (:pg-dbspec (get-app-config)))
+
+(defn get-local-port []
+  (:local-port (:app (get-app-config))))
 
 (comment
   (edn/read (PushbackReader. (io/reader "./resources/config.edn")))
