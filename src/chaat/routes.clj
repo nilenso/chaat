@@ -1,5 +1,5 @@
 (ns chaat.routes
-  (:require [chaat.handler :as handler]))
+  (:require [chaat.handler.handler :as handler]))
 
 (def routes ["/" [["" {:get handler/home}]
                   ["health-check" {:get handler/health-check}]
