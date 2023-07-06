@@ -1,10 +1,21 @@
-{:pg-db {:dbtype "postgresql"
-         :dbname "chaat-db"
-         :user "chaat-dev"
-         :password "password"
-         :host "127.0.0.1"
-         :port 8001}
+;; local postgres instance used for development
+{:pg-dbspec {:dbtype "postgresql"
+             :dbname "chaat_db"
+             :username "chaat_dev"
+             :user "chaat_dev"
+             :password "password"
+             :host "127.0.0.1"
+             :port 8001}
+
+ ;; local postgres instance for running tests
+ :pg-test-dbspec {:dbtype "postgresql"
+                  :dbname "chaat_db_test"
+                  :username "chaat_dev"
+                  :user "chaat_dev"
+                  :password "password"
+                  :host "127.0.0.1"
+                  :port 8002}
+ 
  :app {:default-timezone "Etc/UTC"
-       :static-salt "3Y6R+ewb7uI="}}
-
-
+       :static-salt "3Y6R+ewb7uI="
+       :local-port 3000}}

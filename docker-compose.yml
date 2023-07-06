@@ -9,7 +9,16 @@ services:
       TZ: Etc/UTC
       PGTZ: Etc/UTC
       POSTGRES_PASSWORD: password
-      POSTGRES_USER: chaat-dev
-      POSTGRES_DB: chaat-db
-
-# look into configurable ports using env variables $
+      POSTGRES_USER: chaat_dev
+      POSTGRES_DB: chaat_db
+  test-db:
+    image: postgres:16beta1
+    ports:
+      - "8002:5432"
+    restart: always
+    environment:
+      TZ: Etc/UTC
+      PGTZ: Etc/UTC
+      POSTGRES_PASSWORD: password
+      POSTGRES_USER: chaat_dev
+      POSTGRES_DB: chaat_db_test
