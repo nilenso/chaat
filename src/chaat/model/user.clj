@@ -1,71 +1,73 @@
 (ns chaat.model.user
   (:require
-   [chaat.config :as config :refer [pg-db]]
-   [crypto.password.bcrypt :as pwd]
+   [chaat.config :as config]
+   [chaat.db.user :as db]
+   [crypto.password.bcrypt :as bcrypt]
    [crypto.random :as random]
-   [next.jdbc :as jdbc]
-   [next.jdbc.sql :as sql]
-   [next.jdbc.date-time]
    [java-time.api :as jt]))
 
-;; what sort of values should functions in my model layer return to the handlers
-;; this will be for the handler to decide whether to send a good/bad response
+(defn min-length?
+  "Check if string is >= a threshold length"
+  [str threshold]
+  (>= (count str) threshold))
 
-;; 2 ways to organize
-;; by mechanism (db operation etc.)
-;; by property (uniqueness is a property of a user (username))
-
-(defn new-user?
-  "Check if username does not exist in username column of user table.
-   If username does not exist, return true, else false."
+;; pertains to the representation of a user, hence this is in the model layer
+;; add more restrictions: special characters not allowed, only alphanumeric
+(defn validate-username-format
+  "Basic format check for username"
   [username]
-  (empty? (sql/find-by-keys pg-db :users {:username username})))
+  (let [min-length 2]
+    (if (min-length? username min-length)
+      [username nil]
+      [nil "Wrong username format"])))
+
+(defn validate-password-format
+  "Basic format check for password"
+  [password]
+  (let [min-length 8]
+    (if (min-length? password min-length)
+      [password nil]
+      [nil "Wrong password format"])))
+
+(defn validate-signup-details
+  "Basic format check for signup details: username & password"
+  [username password]
+  (let [[param err] (validate-username-format username)
+        [param err] (if (nil? err) (validate-password-format password) [nil err])]
+    [param err]))
+;; param here will only contain username if validation passes
 
 (defn gen-new-user-map
+  "Generate user info map for new user"
   [username password]
-  (let [static-salt config/static-salt
+  (let [static-salt (config/get-static-salt)
         dynamic-salt (crypto.random/base64 8)
         salted-password (str password static-salt dynamic-salt)]
     {:username username
      :dynamic_salt dynamic-salt
-     :password_hash (pwd/encrypt salted-password)
+     :password_hash (bcrypt/encrypt salted-password)
      :creation_timestamp (jt/instant)
      :display_picture nil}))
 
-;; create a separate db layer.
-;; db layer will be responsible for making sense of the map received
-;; can have another translation layer which the db layer will call
-
-;; repeated, will make something like a helper.clj for these functions
-(defn build-result-map
-  [success message description]
-  {:success success
-   :message message
-   :description description})
-
-;; Can use :pre and :post for validation with assertion errors
-(defn create-user
+(defn create
   "Create a user and add user info to db"
   [username password]
-  (try
-    (jdbc/with-transaction [tx pg-db]
-      (if (new-user? username)
-        (->> (sql/insert! tx :users (gen-new-user-map username password))
-             (build-result-map true nil))
-        (build-result-map false (str username " already exists") :username)))
-    ;; potentially only catch known exceptions here
-    (catch Exception e
-      (build-result-map false "PostgreSQL Exception" (str e)))))
+  (let [[param err] (validate-signup-details username password)
+        user-info  (if (nil? err) (gen-new-user-map username password) [nil err])
+        [param err] (if (nil? err) (db/add-user user-info) [nil err])]
+    [param err]))
 
-(defn delete-user
+(defn delete
   "Delete user account: remove user info from db"
   [username]
-  (if (= 1 (:next.jdbc/update-count (sql/delete! pg-db :users {:username username})))
-    (build-result-map true (str "Successfully deleted " username) nil)
-    (build-result-map false (str "Error deleting " username) nil)))
+  (let [[param err] (validate-username-format username)
+        [param err] (if (nil? err) (db/delete-user username) [nil err])]
+    [param err]))
 
 ;; Repl testing code
-;; (sql/insert! pg-db :users (gen-new-user-map "uditm" "12345678"))
+;; (sql/insert! pg-db :users (gen-new-user-map "udit" "12345678"))
+;; (sql/delete! pg-dbspec :users {:username "udit"})
+;; (sql/insert! pg-dbspec :users (gen-new-user-map "udit" "12345678"))
 
 ;; (defn gen-test-users
 ;;   []
