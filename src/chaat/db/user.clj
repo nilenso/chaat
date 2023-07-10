@@ -20,19 +20,16 @@
   (create-data-source (config/get-pg-dbspec)))
 
 (defn new-user?
-  "Check if username exists in username column of user table"
-  [username]
-  (if (empty? (sql/find-by-keys (pg-ds) :users {:username username}))
-    [username nil]
-    [nil "Username already exists"]))
+  "Check if username exists in username column of user table."
+  [datasource username]
+  (empty? (sql/find-by-keys datasource :users {:username username})))
 
 (defn add-user
   "Insert new user into user table"
   [user-info]
   (try
     (jdbc/with-transaction [tx (pg-ds)]
-      ;; use a let for new user check.
-      (if (new-user? (:username user-info))
+      (if (new-user? tx (:username user-info))
         (let [query-result (sql/insert! tx :users user-info)]
           [query-result nil])
         [nil "Username already exists"]))
