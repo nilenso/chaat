@@ -17,5 +17,4 @@
                   :port 8002}
  
  :app {:default-timezone "Etc/UTC"
-       :static-salt "3Y6R+ewb7uI="
        :local-port 3000}}

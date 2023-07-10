@@ -17,9 +17,6 @@
 (defn get-pg-test-dbspec []
   (:pg-test-dbspec (get-app-config)))
 
-(defn get-static-salt []
-  (:pg-dbspec (get-app-config)))
-
 (defn get-local-port []
   (:local-port (:app (get-app-config))))
 

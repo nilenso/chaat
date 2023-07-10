@@ -41,12 +41,10 @@
 (defn gen-new-user-map
   "Generate user info map for new user"
   [username password]
-  (let [static-salt (config/get-static-salt)
-        dynamic-salt (crypto.random/base64 8)
-        salted-password (str password static-salt dynamic-salt)]
+  (let [work-factor 11
+        password-hash (bcrypt/encrypt password work-factor)]
     {:username username
-     :dynamic_salt dynamic-salt
-     :password_hash (bcrypt/encrypt salted-password)
+     :password_hash password-hash
      :creation_timestamp (jt/instant)
      :display_picture nil}))
 
