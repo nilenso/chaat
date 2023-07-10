@@ -24,27 +24,27 @@
   [datasource username]
   (empty? (sql/find-by-keys datasource :users {:username username})))
 
-(defn add-user
+(defn insert
   "Insert new user into user table"
   [user-info]
   (try
     (jdbc/with-transaction [tx (pg-ds)]
       (if (new-user? tx (:username user-info))
         (let [query-result (sql/insert! tx :users user-info)]
-          [query-result nil])
-        [nil "Username already exists"]))
-    ;; improve error catching
+          {:result query-result :error nil})
+        {:result nil :error "Username already exists"}))
     (catch Exception e
-      [nil (str "Postgres exception: " e)])))
+      {:result nil :error (str "Postgres exception: " e)})))
 
-(defn delete-user
+;; authenticate users before deleting
+(defn delete
   "Remove user from user table"
   [username]
   (let [query-result (sql/delete! (pg-ds) :users {:username username})
         update-count (:next.jdbc/update-count query-result)]
     (if (= 1 update-count)
-      [username nil]
-      [nil "Error deleting user"])))
+      {:result username :error nil}
+      {:result nil :error "Error deleting user"})))
 
 ;; Repl commands
 ;; (sql/delete! (pg-ds) :users {:username "udit"})

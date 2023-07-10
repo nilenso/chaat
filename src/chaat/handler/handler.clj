@@ -2,10 +2,8 @@
   (:require [ring.util.response :as res]
             [chaat.model.user :as user]
             [java-time.api :as jt]
-            [chaat.handler.validation :as validation]))
-
-;; in validation.clj:
-;; consider using validation library like schema to check shape: types and structure
+            [chaat.handler.validation :as validation]
+            [chaat.errors :refer [do-or-error]]))
 
 (defn home
   [request]
@@ -20,21 +18,21 @@
   [request]
   (let [params (:params request)
         {:keys [username password]} params
-        [params err] (validation/validate-signup-details params)
-        [params err] (if (nil? err) (user/create username password) [nil err])]
-    (if (nil? err)
+        result (validation/validate-signup-details username password)
+        result (do-or-error result user/create username password)]
+    (if (nil? (:error result))
       (res/response "Signup successful")
-      (res/bad-request err))))
+      (res/bad-request (str (:error result))))))
 
 (defn delete-user
   [request]
   (let [params (:params request)
         username (:username params)
-        [param err] (validation/validate-username username)
-        [param err] (if (nil? err) (user/delete username) [nil err])]
-    (if (nil? err)
+        result (validation/validate-username username)
+        result (do-or-error result user/delete username)]
+    (if (nil? (:error result))
       (res/response "Successfully deleted user")
-      (res/bad-request err))))
+      (res/bad-request (str (:error result))))))
 
 (defn test-page
   [request]

@@ -1,22 +1,23 @@
-(ns chaat.handler.validation)
+(ns chaat.handler.validation
+  (:require [chaat.errors :refer [do-or-error]]))
 
+;; handler level validation needs to be improved
 ;; consider using validation library like schema to check shape: types and structure
 
 (defn validate-username
   [username]
   (if (not-empty username)
-    [username nil]
-    [nil "Please enter username"]))
+    {:result username :error nil}
+    {:result nil :error "Please enter username"}))
 
 (defn validate-password
   [password]
   (if (not-empty password)
-    [password nil]
-    [nil "Please enter password"]))
+    {:result password :error nil}
+    {:result nil :error "Please enter password"}))
 
 (defn validate-signup-details
-  [params]
-  (let [{:keys [username password]} params
-        [param err] (validate-username username)
-        [param err] (if (nil? err) (validate-password password) [nil err])]
-    [params err]))
+  [username password]
+  (let [result (validate-username username)
+        result (do-or-error result validate-password password)]
+    result))
