@@ -7,38 +7,58 @@
             [chaat.routes :as routes]
             [bidi.ring :refer [make-handler]]
             [chaat.migrations :as migrations]
-            [chaat.config :as config])
+            [chaat.config :as config]
+            [com.stuartsierra.component :as component])
   (:gen-class))
 
-(def handler
-  (make-handler routes/routes))
-
-(def app
-  (-> #'handler
+;; handler + middleware
+(defn app []
+  (-> routes/routes
+      make-handler
       wrap-keyword-params
       wrap-json-params
       wrap-params
       wrap-reload))
 
-;; look into making this server a component
-(defonce server (atom nil))
+;; defining HttpServer component
+(defrecord HttpServer [config]
+  component/Lifecycle
+  (start [component]
+    (if (:server component)
+      component
+      (let [options (:options config)
+            server (jetty/run-jetty (app) options)]
+        (assoc component :server server))))
+  (stop [component]
+    (if-let [server (:server component)]
+      (do (.stop server)
+          (.join server)
+          (dissoc component :server))
+      component)))
 
-(defn start-server
-  [val]
-  (jetty/run-jetty app {:port (config/get-local-port)
-                        :join? false}))
+;; constructor for HttpServer
+(defn new-http-server [config]
+  (map->HttpServer {:config config}))
 
-;; start/stop flow can be taken over by component later
+(defn new-system [config]
+  (component/system-map
+   :server (new-http-server config)))
+
+(def chaat-system-config {:options {:port (config/get-local-port)
+                                    :join? false}})
+
+(def chaat-system (new-system chaat-system-config))
+
 (defn start []
   ;; can add logging and other setup
-  (migrations/run-migrations)
-  (swap! server start-server))
+  ;; (migrations/run-migrations)
+  ;; (component/start chaat-system)
+  (alter-var-root #'chaat-system component/start))
 
 (defn stop []
-  ;; can add other cleanup
-  (.stop @server))
+  ;; can add other cleanup 
+  (alter-var-root #'chaat-system component/stop))
 
-;; for repl-based development
 (defn restart []
   (stop)
   (start))
@@ -46,8 +66,3 @@
 (defn -main
   [& args]
   (start))
-
-(comment
-  (str "Use these cmds to start and stop server from repl.")
-  (.start @server)
-  (.stop @server))
