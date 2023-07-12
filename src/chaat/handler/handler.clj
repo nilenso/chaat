@@ -15,21 +15,21 @@
    (str "Service is running: " (jt/local-time))))
 
 (defn signup
-  [request]
+  [db request]
   (let [params (:params request)
         {:keys [username password]} params
         result (validation/validate-signup-details username password)
-        result (do-or-error result user/create username password)]
+        result (do-or-error result user/create db username password)]
     (if (nil? (:error result))
       (res/response "Signup successful")
       (res/bad-request (str (:error result))))))
 
 (defn delete-user
-  [request]
+  [db request]
   (let [params (:params request)
         username (:username params)
         result (validation/validate-username username)
-        result (do-or-error result user/delete username)]
+        result (do-or-error result user/delete db username)]
     (if (nil? (:error result))
       (res/response "Successfully deleted user")
       (res/bad-request (str (:error result))))))

@@ -8,12 +8,14 @@
             [bidi.ring :refer [make-handler]]
             [chaat.migrations :as migrations]
             [chaat.config :as config]
+            [next.jdbc.connection :as conn]
             [com.stuartsierra.component :as component])
+  (:import (com.zaxxer.hikari HikariDataSource))
   (:gen-class))
 
 ;; handler + middleware
-(defn app []
-  (-> routes/routes
+(defn make-app [db]
+  (-> (routes/routes-fn db)
       make-handler
       wrap-keyword-params
       wrap-json-params
@@ -21,13 +23,13 @@
       wrap-reload))
 
 ;; defining HttpServer component
-(defrecord HttpServer [config]
+(defrecord HttpServer [config db]
   component/Lifecycle
   (start [component]
     (if (:server component)
       component
       (let [options (:options config)
-            server (jetty/run-jetty (app) options)]
+            server (jetty/run-jetty (make-app db) options)]
         (assoc component :server server))))
   (stop [component]
     (if-let [server (:server component)]
@@ -42,10 +44,12 @@
 
 (defn new-system [config]
   (component/system-map
-   :server (new-http-server config)))
+   :server (component/using (new-http-server config) {:db :db})
+   :db (conn/component HikariDataSource (:pg-dbspec config))))
 
 (def chaat-system-config {:options {:port (config/get-local-port)
-                                    :join? false}})
+                                    :join? false}
+                          :pg-dbspec (config/get-pg-dbspec)})
 
 (def chaat-system (new-system chaat-system-config))
 

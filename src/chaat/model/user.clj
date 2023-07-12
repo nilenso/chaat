@@ -1,9 +1,7 @@
 (ns chaat.model.user
   (:require
-   [chaat.config :as config]
    [chaat.db.user :as db]
    [crypto.password.bcrypt :as bcrypt]
-   [crypto.random :as random]
    [java-time.api :as jt]
    [next.jdbc.date-time :as dt]
    [chaat.errors :refer [do-or-error]]))
@@ -51,17 +49,17 @@
 
 (defn create
   "Create a user and add user info to db"
-  [username password]
+  [db username password]
   (let [result (validate-signup-details username password)
         user-info (do-or-error result gen-new-user-map username password)
-        result (do-or-error result db/insert user-info)]
+        result (do-or-error result db/insert db user-info)]
     result))
 
 (defn delete
   "Delete user account: remove user info from db"
-  [username]
+  [db username]
   (let [result (validate-username-format username)
-        result (do-or-error result db/delete username)]
+        result (do-or-error result db/delete db username)]
     result))
 
 ;; Repl testing code
