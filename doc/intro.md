@@ -1,3 +1,2 @@
 # Introduction to chaat
-
-TODO: write [great documentation](http://jacobian.org/writing/what-to-write/)
+chaat is a pure, simple and fast retro communication service.
