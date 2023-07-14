@@ -17,4 +17,5 @@
                   :port 8002}
  
  :app {:default-timezone "Etc/UTC"
-       :local-port 3000}}
+       :local-port 3000
+       :local-test-port 3010}}
