@@ -1,8 +1,8 @@
 (ns chaat.handler.handler
   (:require [ring.util.response :as res]
-            [chaat.model.user :as user]
+            [chaat.model.user :as model.user]
             [java-time.api :as jt]
-            [chaat.handler.validation :as validation]
+            [chaat.handler.validation :as handler.validation]
             [chaat.errors :refer [do-or-error]]))
 
 (defn home
@@ -21,8 +21,8 @@
   [db request]
   (let [params (:params request)
         {:keys [username password]} params
-        result (validation/validate-signup-details username password)
-        result (do-or-error result user/create db username password)]
+        result (handler.validation/validate-signup-details username password)
+        result (do-or-error result model.user/create db username password)]
     (if (nil? (:error result))
       (res/response "Signup successful")
       (res/bad-request (str (:error result))))))
@@ -32,8 +32,8 @@
   [db request]
   (let [params (:params request)
         username (:username params)
-        result (validation/validate-username username)
-        result (do-or-error result user/delete db username)]
+        result (handler.validation/validate-username username)
+        result (do-or-error result model.user/delete db username)]
     (if (nil? (:error result))
       (res/response (str request))
       (res/bad-request (str (:error result))))))
