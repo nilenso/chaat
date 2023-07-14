@@ -6,15 +6,18 @@
             [chaat.errors :refer [do-or-error]]))
 
 (defn home
+  "Respond with a greeting/welcome"
   [request]
   (res/response "Welcome to chaat"))
 
 (defn health-check
+  "Respond with application status"
   [request]
   (res/response
    (str "Service is running: " (jt/local-time))))
 
 (defn signup
+  "Create a user account with supplied parameters"
   [db request]
   (let [params (:params request)
         {:keys [username password]} params
@@ -25,6 +28,7 @@
       (res/bad-request (str (:error result))))))
 
 (defn delete-user
+  "Delete a user account"
   [db request]
   (let [params (:params request)
         username (:username params)
@@ -35,9 +39,11 @@
       (res/bad-request (str (:error result))))))
 
 (defn test-page
+  "Display the request made to this endpoint for debugging purposes"
   [request]
   (res/response (str request)))
 
 (defn not-found
+  "Catch-all not-found page"
   [request]
   (res/not-found "Resource does not exist"))
