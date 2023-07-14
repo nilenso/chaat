@@ -35,7 +35,7 @@
         result (validation/validate-username username)
         result (do-or-error result user/delete db username)]
     (if (nil? (:error result))
-      (res/response "Successfully deleted user")
+      (res/response (str request))
       (res/bad-request (str (:error result))))))
 
 (defn test-page
