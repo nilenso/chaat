@@ -16,10 +16,12 @@
                  [com.github.seancorfield/next.jdbc "1.3.874"]
                  [clojure.java-time "1.2.0"]
                  [com.stuartsierra/component "1.1.0"]
-                 [com.zaxxer/HikariCP "5.0.1"]]
+                 [com.zaxxer/HikariCP "5.0.1"]
+                 [ring/ring-mock "0.4.0"]]
   :plugins [[lein-ring "0.12.5"]]
   :ring {:handler chaat.handler/handler}
   :main ^:skip-aot chaat.app
   :target-path "target/%s"
+  :test-paths ["test"]
   :profiles {:uberjar {:aot :all
                        :jvm-opts ["-Dclojure.compiler.direct-linking=true"]}})
