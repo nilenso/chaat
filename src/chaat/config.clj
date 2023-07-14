@@ -3,7 +3,7 @@
             [clojure.edn :as edn])
   (:import (java.io PushbackReader)))
 
-;; might not be too much of a advantage to use defn's instead of def's here
+;; change defn's -> def's, not much of an advantage here
 
 (defn get-app-config []
   (with-open [f (io/reader "./resources/config.edn")]
@@ -19,6 +19,9 @@
 
 (defn get-local-port []
   (:local-port (:app (get-app-config))))
+
+(defn get-local-test-port []
+  (:local-test-port (:app (get-app-config))))
 
 (comment
   (edn/read (PushbackReader. (io/reader "./resources/config.edn")))
