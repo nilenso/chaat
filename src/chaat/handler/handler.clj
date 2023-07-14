@@ -14,7 +14,7 @@
   "Respond with application status"
   [request]
   (res/response
-   (str "Service is running: " (jt/local-time))))
+   (str "Service is running: " (jt/instant))))
 
 (defn signup
   "Create a user account with supplied parameters"
