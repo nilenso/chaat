@@ -1,6 +1,6 @@
 # chaat
 
-CLI based retro communication app
+chaat is a retro communication app
 
 ## Installation
 
