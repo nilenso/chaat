@@ -1,8 +1,9 @@
 (ns chaat.handler.validation
   (:require [chaat.errors :refer [do-or-error]]))
 
-;; handler level validation needs to be improved
-;; consider using validation library like schema to check shape: types and structure
+;; Handler layer does very basic validation: are parameters present/absent/nil. 
+;; It doesn't pay attention to making things conform to a certain model (for example, user). 
+;; It just makes sure that the data it needs to pass along is present.
 
 (defn validate-username
   [username]
