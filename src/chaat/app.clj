@@ -9,7 +9,8 @@
             [chaat.migrations :as migrations]
             [chaat.config :as config]
             [next.jdbc.connection :as conn]
-            [com.stuartsierra.component :as component])
+            [com.stuartsierra.component :as component]
+            [ragtime.core])
   (:import (com.zaxxer.hikari HikariDataSource))
   (:gen-class))
 
@@ -42,6 +43,7 @@
 (defn new-http-server [config]
   (map->HttpServer {:config config}))
 
+;; system constructor
 (defn new-system [config]
   (component/system-map
    :server (component/using (new-http-server config) {:db :db})
@@ -55,7 +57,6 @@
 
 (defn start []
   ;; can add logging and other setup
-  ;; (migrations/run-migrations)
   ;; (component/start chaat-system)
   (alter-var-root #'chaat-system component/start))
 
