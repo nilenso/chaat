@@ -6,13 +6,16 @@
    [next.jdbc.date-time :as dt]
    [chaat.errors :refer [do-or-error]]))
 
+;; Model layer does validation pertaining to the representation 
+;; of a user: username & password format (length, special characters etc.)
+
 (defn min-length?
   "Check if string is >= a threshold length"
   [str threshold]
   (>= (count str) threshold))
 
-;; pertains to the representation of a user, hence this is in the model layer
-;; add more restrictions: special characters not allowed, only alphanumeric
+;; Add more restrictions: special characters not allowed, only alphanumeric etc.
+;; Perhaps I can start using the schema library? Or implement something similar myself.
 (defn validate-username-format
   "Basic format check for username"
   [username]
@@ -35,7 +38,6 @@
   (let [result (validate-username-format username)
         result (do-or-error result validate-password-format password)]
     result))
-;; result here will only contain password if validation passes
 
 (defn gen-new-user-map
   "Generate user info map for new user"
@@ -61,13 +63,3 @@
   (let [result (validate-username-format username)
         result (do-or-error result db.user/delete db username)]
     result))
-
-;; Repl testing code
-;; (sql/insert! pg-db :users (gen-new-user-map "udit" "12345678"))
-;; (sql/delete! pg-dbspec :users {:username "udit"})
-;; (sql/insert! pg-dbspec :users (gen-new-user-map "udit" "12345678"))
-
-;; (defn gen-test-users
-;;   []
-;;   (create-user "udit" "12345678")
-;;   (create-user "shivam" "12345678"))
