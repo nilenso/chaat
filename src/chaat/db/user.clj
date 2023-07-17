@@ -6,12 +6,12 @@
 ;; these 2 functions do the same thing, will remove one of them
 (defn new-user?
   "Check if username exists in username column of user table."
-  [datasource username]
-  (empty? (sql/find-by-keys datasource :users {:username username})))
+  [connection username]
+  (empty? (sql/find-by-keys connection :users {:username username})))
 
 (defn user-exists?
-  [datasource username]
-  (let [result (sql/find-by-keys datasource :users {:username username})]
+  [connection username]
+  (let [result (sql/find-by-keys connection :users {:username username})]
     (if (seq result)
       true false)))
 
