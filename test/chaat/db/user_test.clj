@@ -2,9 +2,21 @@
   (:require [chaat.fixture :as fixture]
             [clojure.test :refer :all]
             [chaat.db.user :as db.user]
-            [chaat.model.user :as model.user]))
+            [chaat.model.user :as model.user]
+            [crypto.password.bcrypt :as bcrypt]
+            [java-time.api :as jt]))
 
 (use-fixtures :each fixture/test-fixture)
+
+(defn- time-stub
+  "Return a fixed timestamp"
+  []
+  (jt/instant "2023-06-13T10:07:03.172Z"))
+
+(defn- encrypt-stub
+  "Return a fixed password hash"
+  [_ _]
+  "$2a$11$DoWjFwnL5glpyGqBRgdA3uqoy1glTFVoXP.wesem27g2SL3XFXOHW")
 
 ;; no need to test this?
 (deftest new-user?-test
@@ -14,37 +26,46 @@
 (deftest user-exists?-test
   (testing ""))
 
-;; add tests for query results when testing db operations
-;; solve uuid mismatch by dissoc'ing these keys from the map before comparing
-;; to an expected-result map
-
 (deftest insert-test
   (let [username "john"
         password "12345678"
-        user-info (model.user/gen-new-user-map username password)
         datasource (:db fixture/test-system)]
     (testing "Insert new user into user table succeeds"
-      (let [_ (db.user/insert datasource user-info)]
-        (is (= true (db.user/user-exists? (datasource) "john")))))
+      (with-redefs [model.user/get-time-instant time-stub
+                    bcrypt/encrypt encrypt-stub]
+        (let [user-info (model.user/gen-new-user-map username password)
+              actual-result (db.user/insert datasource user-info)
+              actual-result-without-id (update-in actual-result [:result] dissoc :users/id)
+              expected-result {:result
+                               #:users{:username "john",
+                                       :password_hash "$2a$11$DoWjFwnL5glpyGqBRgdA3uqoy1glTFVoXP.wesem27g2SL3XFXOHW",
+                                       :creation_timestamp #inst "2023-06-13T10:07:03.172000000-00:00",
+                                       :display_picture nil},
+                               :error nil}]
+          (is (= true (db.user/user-exists? (datasource) "john")))
+          (is (= expected-result actual-result-without-id))))
 
-    (testing "Insert existing user into user table fails"
-      (let [actual-result (db.user/insert datasource user-info)
-            expected-result {:result nil :error "Username already exists"}]
-        (is (= expected-result actual-result))))))
+      ;; depends on prior state. put into different block?
+      (testing "Insert existing user into user table fails"
+        (let [user-info (model.user/gen-new-user-map username password)
+              actual-result (db.user/insert datasource user-info)
+              expected-result {:result nil :error "Username already exists"}]
+          (is (= expected-result actual-result)))))))
 
 (deftest delete-test
   (let [username "john"
         password "12345678"
         user-info (model.user/gen-new-user-map username password)
-        datasource (:db fixture/test-system)
-        _ (db.user/insert datasource user-info)]
-    (testing "Remove existing user from user table"
-      (let [expected-result {:result username :error nil}
-            actual-result (db.user/delete datasource username)]
-        (is (= expected-result actual-result))
-        (is (= false (db.user/user-exists? (datasource) username)))))
+        datasource (:db fixture/test-system)]
 
     (testing "Remove non-existent user from user table"
       (let [expected-result {:result nil :error "Error deleting user"}
             actual-result (db.user/delete datasource username)]
-        (is (= expected-result actual-result))))))
+        (is (= expected-result actual-result))))
+
+    (testing "Remove existing user from user table"
+      (let [_ (db.user/insert datasource user-info)
+            expected-result {:result username :error nil}
+            actual-result (db.user/delete datasource username)]
+        (is (= expected-result actual-result))
+        (is (= false (db.user/user-exists? (datasource) username)))))))
