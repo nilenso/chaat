@@ -25,7 +25,9 @@
 (defn stop-test-system []
   (alter-var-root #'test-system component/stop))
 
+;; using a full system for all tests now. this needs to be optimized.
 ;; fixture with test-system (server + db) and migrations run/rollback
+
 (defn test-fixture [tests]
   (stop-test-system)
   (start-test-system)
