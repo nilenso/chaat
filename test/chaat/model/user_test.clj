@@ -1,72 +1,85 @@
 (ns chaat.model.user-test
   (:require [clojure.test :refer :all]
             [chaat.db.user :as db.user]
-            [chaat.model.user :as model.user]))
+            [chaat.model.user :as model.user]
+            [chaat.fixture :as fixture]
+            [java-time.api :as jt]
+            [crypto.password.bcrypt :as bcrypt]))
 
-;; no need to have the system running when testing model layer logic since
-;; we're using stub functions. but this will change since we now plan to add 
-;; integration tests
-;; (use-fixtures :once fixture/test-fixture)
-
-;; no need for real datasource
-(def datasource {})
+(use-fixtures :each fixture/test-fixture)
 
 ;; no need to test this?
 (deftest gen-new-user-map-test
   (testing ""))
 
-(defn- insert-stub
-  "Used as a stub function for db.user/insert
-   Mimics a successful user insertion result from db.user/insert"
-  [_ {:keys [username]}]
-  {:result
-   #:users{:id #uuid "4961adde-fc53-4808-b8d2-f8131a9b1265",
-           :username username,
-           :password_hash "$2a$11$w3OyB7wW6Ma6DFmSzcDjCOQ6CHgWYpZbpQaewkePFZ8WHYEw6jbwK",
-           :creation_timestamp #inst "2023-07-13T05:50:51.726902000-00:00",
-           :display_picture nil},
-   :error nil})
+(defn- time-stub
+  "Return a fixed timestamp"
+  []
+  (jt/instant "2023-06-13T10:07:03.172Z"))
 
-(defn- delete-stub
-  "Used as a stub function for db.user/delete
-   Mimics a successful user deletion result from db.user/delete"
-  [_ username]
-  {:result username :error nil})
+(defn- encrypt-stub
+  "Return a fixed password hash"
+  [_ _]
+  "$2a$11$DoWjFwnL5glpyGqBRgdA3uqoy1glTFVoXP.wesem27g2SL3XFXOHW")
 
 (deftest create-test
-  (testing "If username and password format are valid, proceed to call db.user/insert"
-    (with-redefs [db.user/insert insert-stub]
-      (let [username "john"
-            password "12345678"
-            expected-result {:result
-                             #:users{:id #uuid "4961adde-fc53-4808-b8d2-f8131a9b1265",
-                                     :username "john",
-                                     :password_hash "$2a$11$w3OyB7wW6Ma6DFmSzcDjCOQ6CHgWYpZbpQaewkePFZ8WHYEw6jbwK",
-                                     :creation_timestamp #inst "2023-07-13T05:50:51.726902000-00:00",
-                                     :display_picture nil},
-                             :error nil}]
-        (is (= expected-result (model.user/create datasource username password))))
+  (let [datasource (:db fixture/test-system)]
+    (with-redefs [model.user/get-time-instant time-stub
+                  bcrypt/encrypt encrypt-stub]
 
       (testing "If username format is invalid, return an error"
         (let [username "j"
               password "12345678"
+              actual-result (model.user/create datasource username password)
               expected-result {:result nil :error "Wrong username format"}]
-          (is (= expected-result (model.user/create datasource username password)))))
+          (is (= expected-result actual-result))))
 
       (testing "If password format is invalid, return an error"
         (let [username "john"
               password "12345"
+              actual-result (model.user/create datasource username password)
               expected-result {:result nil :error "Wrong password format"}]
-          (is (= expected-result (model.user/create datasource username password))))))))
+          (is (= expected-result actual-result))))
+
+      (testing "If username and password format are valid, insert user succeeds"
+        (let [username "john"
+              password "12345678"
+              actual-result (model.user/create datasource username password)
+              actual-result-without-uuid (update-in actual-result [:result] dissoc :users/id)
+              expected-result {:result
+                               #:users{:username "john",
+                                       :password_hash "$2a$11$DoWjFwnL5glpyGqBRgdA3uqoy1glTFVoXP.wesem27g2SL3XFXOHW",
+                                       :creation_timestamp #inst "2023-06-13T10:07:03.172000000-00:00",
+                                       :display_picture nil},
+                               :error nil}]
+          (is (= expected-result actual-result-without-uuid))))
+
+      ;; depends on previous state, put in a different block?
+      (testing "If user already exists, return an error"
+        (let [username "john"
+              password "12345678"
+              actual-result (model.user/create datasource username password)
+              expected-result {:result nil :error "Username already exists"}]
+          (is (= expected-result actual-result)))))))
 
 (deftest delete-test
-  (testing "If username format is valid, proceed to call db.user/delete"
-    (with-redefs [db.user/delete delete-stub]
-      (let [username "john"
-            expected-result {:result username :error nil}]
-        (is (= expected-result (model.user/delete datasource username))))
+  (let [datasource (:db fixture/test-system)]
+    (testing "If username format is invalid, return an error"
+      (let [username "j"
+            actual-result (model.user/delete datasource username)
+            expected-result {:result nil :error "Wrong username format"}]
+        (is (= expected-result actual-result))))
 
-      (testing "If username format is invalid, return an error"
-        (let [username "j"
-              expected-result {:result nil :error "Wrong username format"}]
-          (is (= expected-result (model.user/delete datasource username))))))))
+    (testing "If username format is valid but user does not exist, delete user fails"
+      (let [username "john"
+            actual-result (model.user/delete datasource username)
+            expected-result {:result nil :error "Error deleting user"}]
+        (is (= expected-result actual-result))))
+
+    (testing "If username format is valid and user exists, delete user succeeds"
+      (let [username "john"
+            password "12345678"
+            _ (model.user/create datasource username password)
+            actual-result (model.user/delete datasource username)
+            expected-result {:result username :error nil}]
+        (is (= expected-result actual-result))))))
