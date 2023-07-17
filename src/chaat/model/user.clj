@@ -39,6 +39,11 @@
         result (do-or-error result validate-password-format password)]
     result))
 
+(defn get-time-instant
+  "Returns the result from a call to jt/instant"
+  []
+  (jt/instant))
+
 (defn gen-new-user-map
   "Generate user info map for new user"
   [username password]
@@ -46,9 +51,11 @@
         password-hash (bcrypt/encrypt password work-factor)]
     {:username username
      :password_hash password-hash
-     :creation_timestamp (jt/instant)
+     :creation_timestamp (get-time-instant)
      :display_picture nil}))
 
+;; can add optional parameters to help with testing
+;; can take an optional empty map
 (defn create
   "Create a user and add user info to db"
   [db username password]
