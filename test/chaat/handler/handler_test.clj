@@ -7,20 +7,11 @@
 
 (use-fixtures :each fixture/test-fixture)
 
-(defn- time-stub
-  "Return a fixed timestamp"
-  []
-  (jt/instant "2023-06-13T10:07:03.172Z"))
-
-(defn- encrypt-stub
-  "Return a fixed password hash"
-  [_ _]
-  "$2a$11$DoWjFwnL5glpyGqBRgdA3uqoy1glTFVoXP.wesem27g2SL3XFXOHW")
-
 (deftest health-check-test
   (testing "Request to health check endpoint should return status 200"
-    (let [request {}
-          response (handler/health-check request)]
+    (let [datasource (:db fixture/test-system)
+          request {}
+          response (handler/health-check datasource request)]
       (is (= 200 (:status response))))))
 
 (deftest signup-test
