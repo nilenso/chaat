@@ -17,7 +17,8 @@
                  [clojure.java-time "1.2.0"]
                  [com.stuartsierra/component "1.1.0"]
                  [com.zaxxer/HikariCP "5.0.1"]
-                 [ring/ring-mock "0.4.0"]
+                 [buddy/buddy-auth "3.0.323"]
+                 [cheshire "5.11.0"]
                  [clj-http "3.12.3"]]
   :plugins [[lein-ring "0.12.5"]]
   :ring {:handler chaat.handler/handler}
