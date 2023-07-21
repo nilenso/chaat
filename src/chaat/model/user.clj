@@ -4,8 +4,8 @@
    [crypto.password.bcrypt :as bcrypt]
    [java-time.api :as jt]
    [next.jdbc.date-time :as dt]
-   [chaat.errors :refer [do-or-error]]
-   [chaat.handler.errors :refer [error-table]]))
+   [chaat.handler.errors :refer [error-table]]
+   [chaat.errors :refer [do-or-error until-err->]]))
 
 ;; Model layer does validation pertaining to the representation of a 
 ;; user: username & password format (length, special characters etc.)
@@ -31,11 +31,11 @@
       {:result password :error nil}
       {:result nil :error (:password-format error-table)})))
 
-(defn validate-signup-details
+(defn validate-credentials-format
   "Basic format check for signup details: username & password"
   [username password]
-  (let [result (validate-username-format username)
-        result (do-or-error result validate-password-format password)]
+  (let [result (until-err-> (validate-username-format username)
+                            (validate-password-format password))]
     result))
 
 (defn get-time-instant
@@ -57,8 +57,8 @@
 (defn create
   "Create a user and add user info to db"
   [db username password]
-  (let [result (validate-signup-details username password)
-        user-info (do-or-error result gen-new-user username password)
+  (let [result (validate-credentials-format username password)
+        user-info (do-or-error result gen-new-user-map username password)
         result (do-or-error result db.user/insert db user-info)]
     result))
 
