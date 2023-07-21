@@ -5,7 +5,9 @@
    [java-time.api :as jt]
    [next.jdbc.date-time :as dt]
    [chaat.handler.errors :refer [error-table]]
-   [chaat.errors :refer [do-or-error until-err->]]))
+   [chaat.errors :refer [do-or-error until-err->]]
+   [buddy.sign.jwt :as jwt]
+   [chaat.config :as config]))
 
 ;; Model layer does validation pertaining to the representation of a 
 ;; user: username & password format (length, special characters etc.)
@@ -54,12 +56,43 @@
 
 ;; can add optional parameters to help with testing
 ;; can take an optional empty map
+
 (defn create
   "Create a user and add user info to db"
   [db username password]
   (let [result (validate-credentials-format username password)
         user-info (do-or-error result gen-new-user-map username password)
         result (do-or-error result db.user/insert db user-info)]
+    result))
+
+(defn authenticate
+  "Authenticate user and issue signed JWT"
+  [retrieved-password-hash username password]
+  (let [correct-password? (bcrypt/check password retrieved-password-hash)]
+    (if correct-password?
+      (let [payload {:sub nil
+                     :username username
+                     :iat nil
+                     :eat nil}
+            token (jwt/sign payload (config/get-secret))]
+        {:result {:jwt token} :error nil})
+      {:result nil :error "Username or password is incorrect"})))
+
+;; (defn login
+;;   "Return signed JWT for username if credentials are authenticated"
+;;   [db username password]
+;;   (let [result (validate-credentials-format username password)
+;;         result (do-or-error result db.user/get-password-hash db username)
+;;         retrieved-password-hash (get-in result [:result :password-hash])
+;;         result (do-or-error result authenticate username password retrieved-password-hash)]
+;;     result))
+
+(defn login
+  "Return signed JWT for username if credentials are authenticated"
+  [db username password]
+  (let [result (until-err-> (validate-credentials-format username password)
+                            (db.user/get-password-hash db username)
+                            (authenticate :result username password))]
     result))
 
 (defn delete
