@@ -29,6 +29,9 @@
 (defn get-local-test-port []
   (:local-test-port (:app (get-config))))
 
+(defn get-secret []
+  (:secret (:app (get-app-config))))
+
 (comment
   (edn/read (PushbackReader. (io/reader "./resources/config.edn")))
   (edn/read (new PushbackReader (io/reader "./resources/config.edn"))))

@@ -18,4 +18,5 @@
  
  :app {:default-timezone "Etc/UTC"
        :local-port 3000
-       :local-test-port 3010}}
+       :local-test-port 3010
+       :secret "secret"}}
