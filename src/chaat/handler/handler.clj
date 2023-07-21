@@ -14,6 +14,13 @@
     (-> (res/response (json/encode (:msg error)))
         (res/status (:status-code error)))))
 
+(defn is-auth-user
+  [request username]
+  (let [auth-user (get-in request [:identity :username])]
+    (if (= auth-user username)
+      {:result username :error nil}
+      {:result nil :error "unauthorized action"})))
+
 (defn home
   "Respond with a greeting/welcome"
   [request]
@@ -55,13 +62,24 @@
                             (model.user/login db username password))]
     (send-response result)))
 
+;; (defn delete-user
+;;   "Delete a user account"
+;;   [db {:keys [params] :as request}]
+;;   (let [username (:username params)]
+;;     (if (and (handler.validation/valid-username? username)
+;;              (auth-user? request username))
+;;       (let [{:keys [result error]} (model.user/delete db username)]
+;;         (if-not error
+;;           (res/response (json/encode result))
+;;           (res/bad-request (json/encode error))))
+;;       (res/bad-request "error"))))
+
 (defn delete-user
-  "Delete a user account"
-  [db request]
-  (let [params (:params request)
-        username (:username params)
-        result (handler.validation/validate-username username)
-        result (do-or-error result model.user/delete db username)]
+  [db {:keys [params] :as request}]
+  (let [username (:username params)
+        result (until-err-> (handler.validation/validate-username username)
+                            (is-auth-user request username)
+                            (model.user/delete db username))]
     (send-response result)))
 
 (defn test-page
