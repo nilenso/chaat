@@ -3,7 +3,10 @@
             [chaat.handler.handler :as handler]
             [java-time.api :as jt]
             [chaat.model.user :as model.user]
-            [chaat.fixture :as fixture]))
+            [chaat.fixture :as fixture]
+            [cheshire.core :as json]
+            [chaat.config :as config]
+            [buddy.sign.jwt :as jwt]))
 
 (use-fixtures :each fixture/test-fixture)
 
@@ -43,6 +46,31 @@
             request {:params params}
             response (handler/signup datasource request)]
         (is (= 409 (:status response)))))))
+
+(deftest login-test
+  (let [datasource (:db fixture/test-system)
+        username "john"
+        password "12345678"
+        params {:username username
+                :password password}]
+
+    (testing "Login fails when user does not exist"
+      (let [request {:params params}
+            response (handler/login datasource request)]
+        (is (= 400 (:status response)))))
+
+    (let [_ (handler/signup datasource {:params {:username username :password password}})]
+      (testing "Login passes when user exists and credentials are correct"
+        (let [request {:params params}
+              response (handler/login datasource request)
+              payload {:sub nil
+                       :username username
+                       :iat nil
+                       :eat nil}
+              expected-jwt (jwt/sign payload (config/get-secret))
+              actual-jwt (:jwt (json/decode (:body response) true))]
+          (is (= 200 (:status response)))
+          (is (= expected-jwt actual-jwt)))))))
 
 (deftest delete-user-test
   (let [datasource (:db fixture/test-system)]
