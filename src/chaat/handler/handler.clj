@@ -30,7 +30,7 @@
   [db request]
   (let [params (:params request)
         {:keys [username password]} params
-        result (handler.validation/validate-signup-details username password)
+        result (handler.validation/validate-credentials username password)
         result (do-or-error result model.user/create db username password)]
     (send-response result)))
 
