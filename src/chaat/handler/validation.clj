@@ -18,7 +18,7 @@
     {:result password :error nil}
     {:result nil :error (:password-empty error-table)}))
 
-(defn validate-signup-details
+(defn validate-credentials
   [username password]
   (let [result (validate-username username)
         result (do-or-error result validate-password password)]
