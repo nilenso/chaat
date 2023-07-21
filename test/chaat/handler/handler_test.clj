@@ -93,11 +93,21 @@
             response (handler/delete-user datasource request)]
         (is (= 404 (:status response)))))
 
-    (testing "Username param in request, and user exists, delete succeeds"
-      (let [username "john"
-            password "12345678"
-            _ (handler/signup datasource {:params {:username username :password password}})
-            params {:username "john"}
-            request {:params params}
-            response (handler/delete-user datasource request)]
-        (is (= 200 (:status response)))))))
+    (let [username "john"
+          password "12345678"
+          params {:username username}
+          identity {:username username}]
+
+      ;; create user john
+      (let [_ (handler/signup datasource {:params {:username username :password password}})]
+        (testing "Unauthorized request, delete fails"
+          (let [request {:params params}
+                response (handler/delete-user datasource request)]
+            (is (= 400 (:status response)))))
+        ;; this should be 401, need to modify handler code also
+
+        (testing "Authorized request, delete succeeds"
+          (let [request {:params params
+                         :identity identity}
+                response (handler/delete-user datasource request)]
+            (is (= 200 (:status response)))))))))
