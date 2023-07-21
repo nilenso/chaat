@@ -33,6 +33,32 @@
       {:result username :error nil}
       {:result nil :error (:username-not-exists error-table)})))
 
+;; (defn get-password-hash
+;;   "Retrieve password hash for username"
+;;   [db username]
+;;   (try
+;;     (jdbc/with-transaction [tx (db)]
+;;       (if (user-exists? tx username)
+;;         (let [query ["SELECT password_hash FROM users WHERE username = ?" username]
+;;               query-result (jdbc/execute-one! tx query)
+;;               password-hash (:users/password_hash query-result)]
+;;           {:result password-hash :error nil})
+;;         {:result nil :error "Username or password is incorrect"}))
+;;     (catch Exception e
+;;       {:result nil :error {:code 500
+;;                            :msg (str "Postgres exception: " e)}})))
+
+(defn get-password-hash
+  "Retrieve password hash for username"
+  [db username]
+  (jdbc/with-transaction [tx (db)]
+    (if (user-exists? tx username)
+      (let [query ["SELECT password_hash FROM users WHERE username = ?" username]
+            query-result (jdbc/execute-one! tx query)
+            password-hash (:users/password_hash query-result)]
+        {:result password-hash :error nil})
+      {:result nil :error "Username or password is incorrect"})))
+
 (comment
   (new-user? ((:db chaat.app/chaat-system)) "neena")
   (user-exists? ((:db chaat.app/chaat-system)) "udit"))
