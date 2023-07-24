@@ -76,7 +76,7 @@
             actual-result (model.user/authenticate retrieved-password-hash username password)]
         (is (= expected-result actual-result))))
 
-    (testing "Return map with error when password hashed do not match"
+    (testing "Return map with error when password hashes do not match"
       (let [password "12312312"
             actual-result (model.user/authenticate retrieved-password-hash username password)
             expected-result {:result nil :error "Username or password is incorrect"}]
