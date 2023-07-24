@@ -69,12 +69,12 @@
           password "12345678"
           user-info (model.user/gen-new-user-map username password)]
 
-      (testing "Return map with error when user does not exist"
+      (testing "Return map containing error info when user does not exist"
         (let [actual-result (db.user/get-password-hash datasource username)
               expected-result {:result nil :error "Username or password is incorrect"}]
           (is (= expected-result actual-result))))
 
-      (testing "Return map with password hash when user exists"
+      (testing "Return map containing password hash when user exists"
         (let [_ (db.user/insert datasource user-info)
               actual-result (db.user/get-password-hash datasource username)
               expected-pwd-hash "$2a$11$DoWjFwnL5glpyGqBRgdA3uqoy1glTFVoXP.wesem27g2SL3XFXOHW"
