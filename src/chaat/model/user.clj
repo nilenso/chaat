@@ -54,9 +54,6 @@
      :password_hash password-hash
      :creation_timestamp (get-time-instant)}))
 
-;; can add optional parameters to help with testing
-;; can take an optional empty map
-
 (defn create
   "Create a user and add user info to db"
   [db username password]
