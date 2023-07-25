@@ -33,17 +33,14 @@
       {:result username :error nil}
       {:result nil :error (:username-not-exists error-table)})))
 
-;; removed try/catch for postgres errors
-;; will let ring catch postgres errrors and serve a 500 page
-(defn get-password-hash
-  "Retrieve password hash for username"
+(defn get-user-details
+  "Retrieve user details for username"
   [db username]
   (jdbc/with-transaction [tx (db)]
     (if (user-exists? tx username)
-      (let [query ["SELECT password_hash FROM users WHERE username = ?" username]
-            query-result (jdbc/execute-one! tx query)
-            password-hash (:users/password_hash query-result)]
-        {:result password-hash :error nil})
+      (let [query ["SELECT * FROM users WHERE username = ?" username]
+            query-result (jdbc/execute-one! tx query)]
+        {:result query-result :error nil})
       {:result nil :error "Username or password is incorrect"})))
 
 (comment
