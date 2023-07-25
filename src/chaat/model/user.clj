@@ -70,10 +70,13 @@
   [retrieved-password-hash username password]
   (let [correct-password? (bcrypt/check password retrieved-password-hash)]
     (if correct-password?
-      (let [payload {:sub nil
+      (let [current-instant (jt/instant)
+            expiry-instant (jt/plus current-instant (jt/days 7))
+            iat (jt/to-millis-from-epoch current-instant)
+            eat (jt/to-millis-from-epoch expiry-instant)
                      :username username
-                     :iat nil
-                     :eat nil}
+                     :iat iat
+                     :eat eat}
             token (jwt/sign payload (config/get-secret))]
         {:result {:jwt token} :error nil})
       {:result nil :error "Username or password is incorrect"})))
