@@ -41,19 +41,6 @@
         result (do-or-error result model.user/create db username password)]
     (send-response result)))
 
-;; (defn login
-;;   "Authenticate username and password, and return JWT if credentials are correct"
-;;   [db request]
-;;   (let [params (:params request)
-;;         {:keys [username password]} params
-;;         result (handler.validation/validate-credentials username password)
-;;         result (do-or-error result model.user/login db username password)]
-;;     (if (nil? (:error result))
-;;       (let [token (get-in result [:result :jwt])]
-;;         (res/response (str token)))
-;;       (res/bad-request (str (:error result))))))
-
-;; what did neena say about getting the db direct from the system? so not passed as a parameter then?
 (defn login
   "Authenticate username and password, and return JWT if credentials are correct"
   [db {:keys [params]}]
@@ -61,18 +48,6 @@
         result (until-err-> (handler.validation/validate-credentials username password)
                             (model.user/login db username password))]
     (send-response result)))
-
-;; (defn delete-user
-;;   "Delete a user account"
-;;   [db {:keys [params] :as request}]
-;;   (let [username (:username params)]
-;;     (if (and (handler.validation/valid-username? username)
-;;              (auth-user? request username))
-;;       (let [{:keys [result error]} (model.user/delete db username)]
-;;         (if-not error
-;;           (res/response (json/encode result))
-;;           (res/bad-request (json/encode error))))
-;;       (res/bad-request "error"))))
 
 (defn delete-user
   [db {:keys [params] :as request}]
