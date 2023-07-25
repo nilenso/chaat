@@ -14,7 +14,3 @@
   (if (nil? error)
     (apply f args)
     {:result result :error error}))
-
-;; consider creating standard error messages. maybe in a map structure.
-;; (def invalid-username "Wrong username format")
-;; (def invalid-password "Wrong password format")

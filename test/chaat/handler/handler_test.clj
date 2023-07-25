@@ -36,8 +36,6 @@
             response (handler/signup datasource request)]
         (is (= 200 (:status response)))))
 
-      ;; perhaps no need to test this here? been tested at other layers already.
-      ;; depends on previous state, move to different block?
     (testing "Username and password both present, 
                 but user already exists, hence signup fails"
       (let [params {:username "john"
@@ -60,7 +58,6 @@
             response (handler/delete-user datasource request)]
         (is (= 400 (:status response)))))
 
-    ;; perhaps no need, already tested in other layers?
     (testing "Username param in request, but user does not exist, delete fails"
       (let [params {:username "john"}
             request {:params params}

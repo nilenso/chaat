@@ -39,11 +39,9 @@
           (dissoc component :server))
       component)))
 
-;; constructor for HttpServer
 (defn new-http-server [config]
   (map->HttpServer {:config config}))
 
-;; system constructor
 (defn new-system [config]
   (component/system-map
    :server (component/using (new-http-server config) {:db :db})

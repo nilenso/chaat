@@ -27,8 +27,6 @@
     (catch Exception e
       {:result nil :error (str "Postgres exception: " e)})))
 
-;; future: add authentication/authorization for deleting
-;; users need to be authenticated as username to gain authorization to delete username
 (defn delete
   "Remove user from user table"
   [db username]

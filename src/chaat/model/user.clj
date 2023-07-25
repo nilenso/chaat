@@ -6,16 +6,14 @@
    [next.jdbc.date-time :as dt]
    [chaat.errors :refer [do-or-error]]))
 
-;; Model layer does validation pertaining to the representation 
-;; of a user: username & password format (length, special characters etc.)
+;; Model layer does validation pertaining to the representation of a 
+;; user: username & password format (length, special characters etc.)
 
 (defn min-length?
   "Check if string is >= a threshold length"
   [str threshold]
   (>= (count str) threshold))
 
-;; Add more restrictions: special characters not allowed, only alphanumeric etc.
-;; Perhaps I can start using the schema library? Or implement something similar myself.
 (defn validate-username-format
   "Basic format check for username"
   [username]
