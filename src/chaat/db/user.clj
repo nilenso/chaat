@@ -1,19 +1,18 @@
 (ns chaat.db.user
   (:require
    [next.jdbc :as jdbc]
-   [next.jdbc.sql :as sql]))
+   [next.jdbc.sql :as sql]
+   [next.jdbc.connection :as connection]))
 
-;; these 2 functions do the same thing, will remove one of them
 (defn new-user?
-  "Check if username exists in username column of user table."
+  "Return true if username does not exist in db"
   [connection username]
   (empty? (sql/find-by-keys connection :users {:username username})))
 
 (defn user-exists?
+  "Return true if username exists in db"
   [connection username]
-  (let [result (sql/find-by-keys connection :users {:username username})]
-    (if (seq result)
-      true false)))
+  (not (new-user? connection username)))
 
 (defn insert
   "Insert new user into user table"
@@ -35,3 +34,7 @@
     (if (= 1 update-count)
       {:result username :error nil}
       {:result nil :error "Error deleting user"})))
+
+(comment
+  (new-user? ((:db chaat.app/chaat-system)) "neena")
+  (user-exists? ((:db chaat.app/chaat-system)) "udit"))
