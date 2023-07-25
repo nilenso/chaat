@@ -67,13 +67,14 @@
 
 (defn authenticate
   "Authenticate user and issue signed JWT"
-  [retrieved-password-hash username password]
-  (let [correct-password? (bcrypt/check password retrieved-password-hash)]
+  [{:users/keys [id username password_hash]} password]
+  (let [correct-password? (bcrypt/check password password_hash)]
     (if correct-password?
       (let [current-instant (jt/instant)
             expiry-instant (jt/plus current-instant (jt/days 7))
             iat (jt/to-millis-from-epoch current-instant)
             eat (jt/to-millis-from-epoch expiry-instant)
+            payload {:sub id
                      :username username
                      :iat iat
                      :eat eat}
@@ -81,21 +82,12 @@
         {:result {:jwt token} :error nil})
       {:result nil :error "Username or password is incorrect"})))
 
-;; (defn login
-;;   "Return signed JWT for username if credentials are authenticated"
-;;   [db username password]
-;;   (let [result (validate-credentials-format username password)
-;;         result (do-or-error result db.user/get-password-hash db username)
-;;         retrieved-password-hash (get-in result [:result :password-hash])
-;;         result (do-or-error result authenticate username password retrieved-password-hash)]
-;;     result))
-
 (defn login
   "Return signed JWT for username if credentials are authenticated"
   [db username password]
   (let [result (until-err-> (validate-credentials-format username password)
-                            (db.user/get-password-hash db username)
-                            (authenticate :result username password))]
+                            (db.user/get-user-details db username)
+                            (authenticate :result password))]
     result))
 
 (defn delete
@@ -104,3 +96,7 @@
   (let [result (validate-username-format username)
         result (do-or-error result db.user/delete db username)]
     result))
+
+(comment
+  (def db (:db chaat.app/chaat-system))
+  (authenticate (:result (db.user/get-user-details db "shahn")) "12345678"))
