@@ -4,7 +4,8 @@
             [chaat.db.user :as db.user]
             [chaat.model.user :as model.user]
             [crypto.password.bcrypt :as bcrypt]
-            [java-time.api :as jt]))
+            [java-time.api :as jt]
+            [chaat.handler.errors :refer [error-table]]))
 
 (use-fixtures :each fixture/test-fixture)
 
@@ -49,7 +50,7 @@
       (testing "Insert existing user into user table fails"
         (let [user-info (model.user/gen-new-user-map username password)
               actual-result (db.user/insert datasource user-info)
-              expected-result {:result nil :error "Username already exists"}]
+              expected-result {:result nil :error (:username-exists error-table)}]
           (is (= expected-result actual-result)))))))
 
 (deftest delete-test
@@ -59,7 +60,7 @@
         datasource (:db fixture/test-system)]
 
     (testing "Remove non-existent user from user table"
-      (let [expected-result {:result nil :error "Error deleting user"}
+      (let [expected-result {:result nil :error (:username-not-exists error-table)}
             actual-result (db.user/delete datasource username)]
         (is (= expected-result actual-result))))
 

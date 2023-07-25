@@ -2,7 +2,8 @@
   (:require
    [next.jdbc :as jdbc]
    [next.jdbc.sql :as sql]
-   [next.jdbc.connection :as connection]))
+   [next.jdbc.connection :as connection]
+   [chaat.handler.errors :refer [error-table]]))
 
 (defn new-user?
   "Return true if username does not exist in db"
@@ -17,14 +18,11 @@
 (defn insert
   "Insert new user into user table"
   [db user-info]
-  (try
-    (jdbc/with-transaction [tx (db)]
-      (if (new-user? tx (:username user-info))
-        (let [query-result (sql/insert! tx :users user-info)]
-          {:result query-result :error nil})
-        {:result nil :error "Username already exists"}))
-    (catch Exception e
-      {:result nil :error (str "Postgres exception: " e)})))
+  (jdbc/with-transaction [tx (db)]
+    (if (new-user? tx (:username user-info))
+      (let [query-result (sql/insert! tx :users user-info)]
+        {:result query-result :error nil})
+      {:result nil :error (:username-exists error-table)})))
 
 (defn delete
   "Remove user from user table"
@@ -33,7 +31,7 @@
         update-count (:next.jdbc/update-count query-result)]
     (if (= 1 update-count)
       {:result username :error nil}
-      {:result nil :error "Error deleting user"})))
+      {:result nil :error (:username-not-exists error-table)})))
 
 (comment
   (new-user? ((:db chaat.app/chaat-system)) "neena")

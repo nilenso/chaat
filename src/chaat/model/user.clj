@@ -4,7 +4,8 @@
    [crypto.password.bcrypt :as bcrypt]
    [java-time.api :as jt]
    [next.jdbc.date-time :as dt]
-   [chaat.errors :refer [do-or-error]]))
+   [chaat.errors :refer [do-or-error]]
+   [chaat.handler.errors :refer [error-table]]))
 
 ;; Model layer does validation pertaining to the representation of a 
 ;; user: username & password format (length, special characters etc.)
@@ -20,7 +21,7 @@
   (let [min-length 2]
     (if (min-length? username min-length)
       {:result username :error nil}
-      {:result nil :error "Wrong username format"})))
+      {:result nil :error (:username-format error-table)})))
 
 (defn validate-password-format
   "Basic format check for password"
@@ -28,7 +29,7 @@
   (let [min-length 8]
     (if (min-length? password min-length)
       {:result password :error nil}
-      {:result nil :error "Wrong password format"})))
+      {:result nil :error (:password-format error-table)})))
 
 (defn validate-signup-details
   "Basic format check for signup details: username & password"

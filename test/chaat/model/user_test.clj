@@ -4,7 +4,8 @@
             [chaat.model.user :as model.user]
             [chaat.fixture :as fixture]
             [java-time.api :as jt]
-            [crypto.password.bcrypt :as bcrypt]))
+            [crypto.password.bcrypt :as bcrypt]
+            [chaat.handler.errors :refer [error-table]]))
 
 (use-fixtures :each fixture/test-fixture)
 
@@ -31,14 +32,14 @@
         (let [username "j"
               password "12345678"
               actual-result (model.user/create datasource username password)
-              expected-result {:result nil :error "Wrong username format"}]
+              expected-result {:result nil :error (:username-format error-table)}]
           (is (= expected-result actual-result))))
 
       (testing "If password format is invalid, return an error"
         (let [username "john"
               password "12345"
               actual-result (model.user/create datasource username password)
-              expected-result {:result nil :error "Wrong password format"}]
+              expected-result {:result nil :error (:password-format error-table)}]
           (is (= expected-result actual-result))))
 
       (testing "If username and password format are valid, insert user succeeds"
@@ -59,7 +60,7 @@
         (let [username "john"
               password "12345678"
               actual-result (model.user/create datasource username password)
-              expected-result {:result nil :error "Username already exists"}]
+              expected-result {:result nil :error (:username-exists error-table)}]
           (is (= expected-result actual-result)))))))
 
 (deftest delete-test
@@ -67,13 +68,13 @@
     (testing "If username format is invalid, return an error"
       (let [username "j"
             actual-result (model.user/delete datasource username)
-            expected-result {:result nil :error "Wrong username format"}]
+            expected-result {:result nil :error (:username-format error-table)}]
         (is (= expected-result actual-result))))
 
     (testing "If username format is valid but user does not exist, delete user fails"
       (let [username "john"
             actual-result (model.user/delete datasource username)
-            expected-result {:result nil :error "Error deleting user"}]
+            expected-result {:result nil :error (:username-not-exists error-table)}]
         (is (= expected-result actual-result))))
 
     (testing "If username format is valid and user exists, delete user succeeds"
