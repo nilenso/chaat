@@ -34,7 +34,7 @@
     (testing "Insert new user into user table succeeds"
       (with-redefs [model.user/get-time-instant time-stub
                     bcrypt/encrypt encrypt-stub]
-        (let [user-info (model.user/gen-new-user-map username password)
+        (let [user-info (model.user/gen-new-user username password)
               actual-result (db.user/insert datasource user-info)
               actual-result-without-id (update-in actual-result [:result] dissoc :users/id)
               expected-result {:result
@@ -48,7 +48,7 @@
 
       ;; depends on prior state. put into different block?
       (testing "Insert existing user into user table fails"
-        (let [user-info (model.user/gen-new-user-map username password)
+        (let [user-info (model.user/gen-new-user username password)
               actual-result (db.user/insert datasource user-info)
               expected-result {:result nil :error (:username-exists error-table)}]
           (is (= expected-result actual-result)))))))
@@ -56,7 +56,7 @@
 (deftest delete-test
   (let [username "john"
         password "12345678"
-        user-info (model.user/gen-new-user-map username password)
+        user-info (model.user/gen-new-user username password)
         datasource (:db fixture/test-system)]
 
     (testing "Remove non-existent user from user table"

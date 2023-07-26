@@ -43,7 +43,7 @@
   []
   (jt/instant))
 
-(defn gen-new-user-map
+(defn gen-new-user
   "Generate user info map for new user"
   [username password]
   (let [work-factor 11
@@ -59,7 +59,7 @@
   "Create a user and add user info to db"
   [db username password]
   (let [result (validate-signup-details username password)
-        user-info (do-or-error result gen-new-user-map username password)
+        user-info (do-or-error result gen-new-user username password)
         result (do-or-error result db.user/insert db user-info)]
     result))
 

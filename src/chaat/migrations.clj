@@ -5,16 +5,16 @@
 
 ;; using the migration functions in the ragtime.repl namespace for now
 
-(defn gen-config-map
+(defn gen-config
   [dbspec]
   {:datastore (ragtime.jdbc/sql-database dbspec)
    :migrations (ragtime.jdbc/load-resources "migrations")})
 
 (defn rollback [dbspec]
-  (repl/rollback (gen-config-map dbspec)))
+  (repl/rollback (gen-config dbspec)))
 
 (defn run-migrations [dbspec]
-  (repl/migrate (gen-config-map dbspec)))
+  (repl/migrate (gen-config dbspec)))
 
 (comment
   {:connection-uri
