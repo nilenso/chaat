@@ -19,14 +19,6 @@
   [_ _]
   "$2a$11$DoWjFwnL5glpyGqBRgdA3uqoy1glTFVoXP.wesem27g2SL3XFXOHW")
 
-;; no need to test this?
-(deftest new-user?-test
-  (testing ""))
-
-;; no need to test this?
-(deftest user-exists?-test
-  (testing ""))
-
 (deftest insert-test
   (let [username "john"
         password "12345678"

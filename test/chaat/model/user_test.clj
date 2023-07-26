@@ -9,10 +9,6 @@
 
 (use-fixtures :each fixture/test-fixture)
 
-;; no need to test this?
-(deftest gen-new-user-map-test
-  (testing ""))
-
 (defn- time-stub
   "Return a fixed timestamp"
   []
