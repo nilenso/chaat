@@ -23,6 +23,6 @@
    :username-exists {:msg "Username already exists"
                      :status-code 409}
    :username-not-exists {:msg "Username does not exist"
-                         :status-code 409}
+                         :status-code 404}
    :health-check-error {:msg "Health check error"
                         :status-code 500}})

@@ -42,27 +42,28 @@
                     :password "12345678"}
             request {:params params}
             response (handler/signup datasource request)]
-        (is (= 400 (:status response)))))))
+        (is (= 409 (:status response)))))))
 
 (deftest delete-user-test
   (let [datasource (:db fixture/test-system)]
-    (testing "Missing username in request, delete fails"
+    (testing "Missing username in request, delete fails with 400 bad request"
       (let [params {}
             request {:params params}
             response (handler/delete-user datasource request)]
         (is (= 400 (:status response)))))
 
-    (testing "Username param in request with value nil, delete fails"
+    (testing "Username param in request with value nil, delete fails with 400 bad request"
       (let [params {:username nil}
             request {:params params}
             response (handler/delete-user datasource request)]
         (is (= 400 (:status response)))))
 
-    (testing "Username param in request, but user does not exist, delete fails"
+    (testing "Username parameter present in request,
+              but user does not exist, delete fails with 404 not found"
       (let [params {:username "john"}
             request {:params params}
             response (handler/delete-user datasource request)]
-        (is (= 400 (:status response)))))
+        (is (= 404 (:status response)))))
 
     (testing "Username param in request, and user exists, delete succeeds"
       (let [username "john"
