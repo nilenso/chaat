@@ -50,8 +50,7 @@
         password-hash (bcrypt/encrypt password work-factor)]
     {:username username
      :password_hash password-hash
-     :creation_timestamp (get-time-instant)
-     :display_picture nil}))
+     :creation_timestamp (get-time-instant)}))
 
 ;; can add optional parameters to help with testing
 ;; can take an optional empty map

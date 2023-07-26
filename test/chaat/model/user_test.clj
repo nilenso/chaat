@@ -46,8 +46,7 @@
               expected-result {:result
                                #:users{:username "john",
                                        :password_hash "$2a$11$DoWjFwnL5glpyGqBRgdA3uqoy1glTFVoXP.wesem27g2SL3XFXOHW",
-                                       :creation_timestamp #inst "2023-06-13T10:07:03.172000000-00:00",
-                                       :display_picture nil},
+                                       :creation_timestamp #inst "2023-06-13T10:07:03.172000000-00:00"},
                                :error nil}]
           (is (= expected-result actual-result-without-uuid))))
 
