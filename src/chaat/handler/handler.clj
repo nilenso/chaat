@@ -11,7 +11,8 @@
   [{:keys [result error]}]
   (if-not error
     (res/response (json/encode result))
-    (res/status (res/bad-request (json/encode (:msg error))) (:status-code error))))
+    (-> (res/response (json/encode (:msg error)))
+        (res/status (:status-code error)))))
 
 (defn home
   "Respond with a greeting/welcome"
