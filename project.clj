@@ -7,11 +7,22 @@
                  [ring/ring-core "1.10.0"]
                  [ring/ring-jetty-adapter "1.10.0"]
                  [ring/ring-devel "1.10.0"]
+                 [ring/ring-json "0.5.1"]
                  [bidi "2.1.6"]
-                 [clj-time "0.15.2"]]
+                 [ragtime "0.8.0"]
+                 [org.postgresql/postgresql "42.6.0"]
+                 [crypto-password "0.3.0"]
+                 [crypto-random "1.2.1"]
+                 [com.github.seancorfield/next.jdbc "1.3.874"]
+                 [clojure.java-time "1.2.0"]
+                 [com.stuartsierra/component "1.1.0"]
+                 [com.zaxxer/HikariCP "5.0.1"]
+                 [ring/ring-mock "0.4.0"]
+                 [clj-http "3.12.3"]]
   :plugins [[lein-ring "0.12.5"]]
   :ring {:handler chaat.handler/handler}
   :main ^:skip-aot chaat.app
   :target-path "target/%s"
+  :test-paths ["test"]
   :profiles {:uberjar {:aot :all
                        :jvm-opts ["-Dclojure.compiler.direct-linking=true"]}})
