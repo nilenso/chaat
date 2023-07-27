@@ -55,7 +55,7 @@
   "Create a user and add user info to db"
   [db username password]
   (let [result (validate-credentials-format username password)
-        user-info (do-or-error result gen-new-user-map username password)
+        user-info (do-or-error result gen-new-user username password)
         result (do-or-error result db.user/insert db user-info)]
     result))
 
