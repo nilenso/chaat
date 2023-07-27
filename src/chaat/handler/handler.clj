@@ -67,3 +67,8 @@
   "Catch-all not-found page"
   [request]
   (res/not-found "Resource does not exist"))
+
+(comment
+  (def db (:db chaat.app/chaat-system))
+  (is-auth-user {} "shahn")
+  (delete-user))

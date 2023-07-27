@@ -44,5 +44,7 @@
       {:result nil :error (:username-not-exists error-table)})))
 
 (comment
+  (def db (:db chaat.app/chaat-system))
   (new-user? ((:db chaat.app/chaat-system)) "neena")
-  (user-exists? ((:db chaat.app/chaat-system)) "udit"))
+  (user-exists? ((:db chaat.app/chaat-system)) "udit")
+  (get-user-details db "neena"))

@@ -137,3 +137,7 @@
             actual-result (model.user/delete datasource username)
             expected-result {:result username :error nil}]
         (is (= expected-result actual-result))))))
+
+(comment
+  (def token "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIyNjY3MWFlMi05ODRhLTRmNDUtYTliNC01YjUxMjZlMjI2NGQiLCJ1c2VybmFtZSI6ImpvaG4iLCJpYXQiOjE2OTAzOTc4MDIyMjEsImVhdCI6MTY5MTAwMjYwMjIyMX0.b2GHfBDFXS2zgjCiBRzf_znsqHVlZ0Y53Cs4BHgCKek")
+  (jwt/unsign token (config/get-secret)))

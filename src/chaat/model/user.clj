@@ -99,4 +99,6 @@
 
 (comment
   (def db (:db chaat.app/chaat-system))
-  (authenticate (:result (db.user/get-user-details db "shahn")) "12345678"))
+  (authenticate (:result (db.user/get-user-details db "shahn")) "12345678")
+  (delete db "shahn")
+  (login db "shahn" "12345678"))
