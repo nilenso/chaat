@@ -1,12 +1,5 @@
 (ns chaat.handler.errors)
 
-;; Common error codes:
-;; 400 bad request
-;; 401 unauthorized
-;; 403 forbidden
-;; 404 not found
-;; 500 internal error
-
 (def error-table
   {:username-empty {:msg "Username not present"
                     :status-code 400}
@@ -25,4 +18,6 @@
    :username-not-exists {:msg "Username does not exist"
                          :status-code 404}
    :health-check-error {:msg "Health check error"
-                        :status-code 500}})
+                        :status-code 500}
+   :unauthorized-action {:msg "Unauthorized action"
+                         :status-code 401}})
