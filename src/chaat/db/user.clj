@@ -1,4 +1,4 @@
-(ns chaat.db.user
+ (ns chaat.db.user
   (:require
    [next.jdbc :as jdbc]
    [next.jdbc.sql :as sql]
