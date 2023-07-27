@@ -80,7 +80,7 @@
                      :eat eat}
             token (jwt/sign payload (config/get-secret))]
         {:result {:jwt token} :error nil})
-      {:result nil :error "Username or password is incorrect"})))
+      {:result nil :error (:password-error error-table)})))
 
 (defn login
   "Return signed JWT for username if credentials are authenticated"

@@ -41,7 +41,7 @@
       (let [query ["SELECT * FROM users WHERE username = ?" username]
             query-result (jdbc/execute-one! tx query)]
         {:result query-result :error nil})
-      {:result nil :error "Username or password is incorrect"})))
+      {:result nil :error (:username-not-exists error-table)})))
 
 (comment
   (new-user? ((:db chaat.app/chaat-system)) "neena")

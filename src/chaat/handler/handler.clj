@@ -5,7 +5,8 @@
             [chaat.handler.validation :as handler.validation]
             [chaat.db.utils :as db.utils]
             [chaat.errors :refer [do-or-error until-err->]]
-            [cheshire.core :as json]))
+            [cheshire.core :as json]
+            [chaat.handler.errors :refer [error-table]]))
 
 (defn send-response
   [{:keys [result error]}]
@@ -19,7 +20,7 @@
   (let [auth-user (get-in request [:identity :username])]
     (if (= auth-user username)
       {:result username :error nil}
-      {:result nil :error "unauthorized action"})))
+      {:result nil :error (:unauthorized-action error-table)})))
 
 (defn home
   "Respond with a greeting/welcome"
