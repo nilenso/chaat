@@ -30,7 +30,7 @@
   (:local-test-port (:app (get-config))))
 
 (defn get-secret []
-  (:secret (:app (get-app-config))))
+  (:secret (:app (get-config))))
 
 (comment
   (edn/read (PushbackReader. (io/reader "./resources/config.edn")))
