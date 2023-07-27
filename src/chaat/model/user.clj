@@ -70,7 +70,7 @@
   [{:users/keys [id username password_hash]} password]
   (let [correct-password? (bcrypt/check password password_hash)]
     (if correct-password?
-      (let [current-instant (jt/instant)
+      (let [current-instant (get-time-instant)
             expiry-instant (jt/plus current-instant (jt/days 7))
             iat (jt/to-millis-from-epoch current-instant)
             eat (jt/to-millis-from-epoch expiry-instant)
