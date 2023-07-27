@@ -65,7 +65,7 @@
         result (do-or-error result db.user/insert db user-info)]
     result))
 
-(defn authenticate
+(defn- authenticate
   "Authenticate user and issue signed JWT"
   [{:users/keys [id username password_hash]} password]
   (let [correct-password? (bcrypt/check password password_hash)]
