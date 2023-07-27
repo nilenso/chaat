@@ -9,6 +9,7 @@
             [chaat.handler.errors :refer [error-table]]))
 
 (defn send-response
+  "Construct a response with the correct body and status code"
   [{:keys [result error]}]
   (if-not error
     (res/response (json/encode result))
@@ -16,6 +17,7 @@
         (res/status (:status-code error)))))
 
 (defn is-auth-user
+  "Check if username and authenticated identity match"
   [request username]
   (let [auth-user (get-in request [:identity :username])]
     (if (= auth-user username)
@@ -51,6 +53,7 @@
     (send-response result)))
 
 (defn delete-user
+  "Delete username if authenticated as username"
   [db {:keys [params] :as request}]
   (let [username (:username params)
         result (until-err-> (handler.validation/validate-username username)

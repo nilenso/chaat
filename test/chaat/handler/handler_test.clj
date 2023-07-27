@@ -10,6 +10,9 @@
 
 (use-fixtures :each fixture/test-fixture)
 
+(def stubbed-time "2023-06-13T10:07:03.172Z")
+(defn time-stub [] (jt/instant stubbed-time))
+
 (deftest health-check-test
   (testing "Request to health check endpoint should return status 200"
     (let [datasource (:db fixture/test-system)

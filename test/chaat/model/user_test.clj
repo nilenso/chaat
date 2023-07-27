@@ -13,11 +13,7 @@
 (use-fixtures :each fixture/test-fixture)
 
 (def stubbed-time "2023-06-13T10:07:03.172Z")
-
-(defn- time-stub
-  "Return a fixed timestamp"
-  []
-  (jt/instant stubbed-time))
+(defn- time-stub [] (jt/instant stubbed-time))
 
 (defn- encrypt-stub
   "Return a fixed password hash"
@@ -55,7 +51,7 @@
                                :error nil}]
           (is (= expected-result actual-result-without-uuid))))
 
-      ;; depends on previous state, put in a different block?
+      ;; depends on previous state, will put this in a different deftest block.
       (testing "If user already exists, return an error"
         (let [username "john"
               password "12345678"
@@ -80,9 +76,8 @@
               expected-result {:result nil :error (:username-not-exists error-table)}]
           (is (= expected-result actual-result))))
 
-    ;; create user john
-      (let [_ (model.user/create datasource username password)]
 
+      (let [_ (model.user/create datasource username password)] ;; create user john
         (testing "JWT is not generated for existing user with wrong password"
           (let [password "12312312"
                 actual-result (model.user/login datasource username password)
@@ -120,7 +115,7 @@
     (testing "If username format is valid and user exists, delete user succeeds"
       (let [username "john"
             password "12345678"
-            _ (model.user/create datasource username password)
+            _ (model.user/create datasource username password) ;; create user john
             actual-result (model.user/delete datasource username)
             expected-result {:result username :error nil}]
         (is (= expected-result actual-result))))))

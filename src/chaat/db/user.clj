@@ -34,7 +34,7 @@
       {:result nil :error (:username-not-exists error-table)})))
 
 (defn get-user-details
-  "Retrieve user details for username"
+  "Retrieve user details for given username from user table"
   [db username]
   (jdbc/with-transaction [tx (db)]
     (if (user-exists? tx username)

@@ -9,10 +9,8 @@
 
 (use-fixtures :each fixture/test-fixture)
 
-(defn- time-stub
-  "Return a fixed timestamp"
-  []
-  (jt/instant "2023-06-13T10:07:03.172Z"))
+(def stubbed-time "2023-06-13T10:07:03.172Z")
+(defn- time-stub [] (jt/instant stubbed-time))
 
 (defn- encrypt-stub
   "Return a fixed password hash"

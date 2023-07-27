@@ -40,10 +40,7 @@
                             (validate-password-format password))]
     result))
 
-(defn get-time-instant
-  "Returns the result from a call to jt/instant"
-  []
-  (jt/instant))
+(defn get-time-instant [] (jt/instant))
 
 (defn gen-new-user
   "Generate user info map for new user"
@@ -53,9 +50,6 @@
     {:username username
      :password_hash password-hash
      :creation_timestamp (get-time-instant)}))
-
-;; can add optional parameters to help with testing
-;; can take an optional empty map
 
 (defn create
   "Create a user and add user info to db"
@@ -99,6 +93,6 @@
 
 (comment
   (def db (:db chaat.app/chaat-system))
-  (authenticate (:result (db.user/get-user-details db "shahn")) "12345678")
-  (delete db "shahn")
-  (login db "shahn" "12345678"))
+  (authenticate (:result (db.user/get-user-details db "john")) "12345678")
+  (delete db "john")
+  (login db "john" "12345678"))

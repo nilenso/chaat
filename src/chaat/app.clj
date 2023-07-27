@@ -54,12 +54,9 @@
 (def chaat-system (new-system chaat-system-config))
 
 (defn start []
-  ;; can add logging and other setup
-  ;; (component/start chaat-system)
   (alter-var-root #'chaat-system component/start))
 
 (defn stop []
-  ;; can add other cleanup 
   (alter-var-root #'chaat-system component/stop))
 
 (defn restart []
