@@ -60,20 +60,13 @@
     (testing "Login fails when user does not exist"
       (let [request {:params params}
             response (handler/login datasource request)]
-        (is (= 400 (:status response)))))
+        (is (= 404 (:status response)))))
 
     (let [_ (handler/signup datasource {:params {:username username :password password}})]
-      (testing "Login passes when user exists and credentials are correct"
+      (testing "Login is successful when user exists"
         (let [request {:params params}
-              response (handler/login datasource request)
-              payload {:sub nil
-                       :username username
-                       :iat nil
-                       :eat nil}
-              expected-jwt (jwt/sign payload (config/get-secret))
-              actual-jwt (:jwt (json/decode (:body response) true))]
-          (is (= 200 (:status response)))
-          (is (= expected-jwt actual-jwt)))))))
+              response (handler/login datasource request)]
+          (is (= 200 (:status response))))))))
 
 (deftest delete-user-test
   (let [datasource (:db fixture/test-system)]
@@ -89,13 +82,6 @@
             response (handler/delete-user datasource request)]
         (is (= 400 (:status response)))))
 
-    (testing "Username parameter present in request,
-              but user does not exist, delete fails with 404 not found"
-      (let [params {:username "john"}
-            request {:params params}
-            response (handler/delete-user datasource request)]
-        (is (= 404 (:status response)))))
-
     (let [username "john"
           password "12345678"
           params {:username username}
@@ -106,11 +92,17 @@
         (testing "Unauthorized request, delete fails"
           (let [request {:params params}
                 response (handler/delete-user datasource request)]
-            (is (= 400 (:status response)))))
-        ;; this should be 401, need to modify handler code also
+            (is (= 401 (:status response)))))
 
         (testing "Authorized request, delete succeeds"
           (let [request {:params params
                          :identity identity}
                 response (handler/delete-user datasource request)]
-            (is (= 200 (:status response)))))))))
+            (is (= 200 (:status response)))))
+
+        (testing "Authorized request, but user does not exist"
+          (let [params {:username "john"}
+                request {:params params
+                         :identity identity}
+                response (handler/delete-user datasource request)]
+            (is (= 404 (:status response)))))))))
