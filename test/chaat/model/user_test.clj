@@ -7,14 +7,17 @@
             [crypto.password.bcrypt :as bcrypt]
             [chaat.handler.errors :refer [error-table]]
             [buddy.sign.jwt :as jwt]
-            [chaat.config :as config]))
+            [chaat.config :as config]
+            [chaat.handler.errors :refer [error-table]]))
 
 (use-fixtures :each fixture/test-fixture)
+
+(def stubbed-time "2023-06-13T10:07:03.172Z")
 
 (defn- time-stub
   "Return a fixed timestamp"
   []
-  (jt/instant "2023-06-13T10:07:03.172Z"))
+  (jt/instant stubbed-time))
 
 (defn- encrypt-stub
   "Return a fixed password hash"
@@ -60,61 +63,45 @@
               expected-result {:result nil :error (:username-exists error-table)}]
           (is (= expected-result actual-result)))))))
 
-(deftest authenticate-test
-  (let [username "john"
-        password "12345678"
-        work-factor 11
-        retrieved-password-hash (bcrypt/encrypt password work-factor)
-        payload {:sub nil
-                 :username username
-                 :iat nil
-                 :eat nil}
-        token (jwt/sign payload (config/get-secret))]
-
-    (testing "Return map with JWT when password hashes match"
-      (let [expected-result {:result {:jwt token} :error nil}
-            actual-result (model.user/authenticate retrieved-password-hash username password)]
-        (is (= expected-result actual-result))))
-
-    (testing "Return map with error when password hashes do not match"
-      (let [password "12312312"
-            actual-result (model.user/authenticate retrieved-password-hash username password)
-            expected-result {:result nil :error "Username or password is incorrect"}]
-        (is (= expected-result actual-result))))))
-
 (deftest login-test
-  (let [datasource (:db fixture/test-system)
-        username "john"
-        password "12345678"
-        payload {:sub nil
-                 :username username
-                 :iat nil
-                 :eat nil}
-        token (jwt/sign payload (config/get-secret))]
+  (with-redefs [model.user/get-time-instant time-stub]
+    (let [datasource (:db fixture/test-system)
+          username "john"
+          password "12345678"]
 
-    (testing "JWT is not generated for invalid credentials"
-      (let [username "j"
-            actual-result (model.user/login datasource username password)
-            expected-result {:result nil :error "Wrong username format"}]
-        (is (= expected-result actual-result))))
-
-    (testing "JWT is not generated for user that does not exist"
-      (let [actual-result (model.user/login datasource username password)
-            expected-result {:result nil :error "Username or password is incorrect"}]
-        (is (= expected-result actual-result))))
-
-    ;; create user john
-    (let [_ (model.user/create datasource username password)]
-      (testing "JWT is not generated for existing user with wrong password"
-        (let [password "12312312"
+      (testing "JWT is not generated for invalid credentials"
+        (let [username "j"
               actual-result (model.user/login datasource username password)
-              expected-result {:result nil :error "Username or password is incorrect"}]
+              expected-result {:result nil :error (:username-format error-table)}]
           (is (= expected-result actual-result))))
 
-      (testing "JWT is generated for existing user with correct password"
+      (testing "JWT is not generated for user that does not exist"
         (let [actual-result (model.user/login datasource username password)
-              expected-result {:result {:jwt token} :error nil}]
-          (is (= expected-result actual-result)))))))
+              expected-result {:result nil :error (:username-not-exists error-table)}]
+          (is (= expected-result actual-result))))
+
+    ;; create user john
+      (let [_ (model.user/create datasource username password)]
+
+        (testing "JWT is not generated for existing user with wrong password"
+          (let [password "12312312"
+                actual-result (model.user/login datasource username password)
+                expected-result {:result nil :error (:password-error error-table)}]
+            (is (= expected-result actual-result))))
+
+        (testing "JWT is generated for existing user with correct password"
+          (let [actual-result (model.user/login datasource username password)
+                token-string (:jwt (:result actual-result))
+                token-contents (jwt/unsign token-string (config/get-secret))
+                issue-instant (time-stub)
+                expiry-instant (jt/plus issue-instant (jt/days 7))
+                iat (jt/to-millis-from-epoch issue-instant)
+                eat (jt/to-millis-from-epoch expiry-instant)]
+            (is (= username (:username token-contents)))
+            (is (= {:username username
+                    :iat iat
+                    :eat eat}
+                   (dissoc token-contents :sub)))))))))
 
 (deftest delete-test
   (let [datasource (:db fixture/test-system)]
