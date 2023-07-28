@@ -20,4 +20,8 @@
    :health-check-error {:msg "Health check error"
                         :status-code 500}
    :unauthorized-action {:msg "Unauthorized action"
-                         :status-code 401}})
+                         :status-code 401}
+   :friend-request-not-exists {:msg "Friend request does not exist"
+                               :status-code 404}
+   :db-state-error {:msg "Internal error"
+                    :status-code 500}})
