@@ -18,4 +18,6 @@
 
 (comment
   {:connection-uri
-   "jdbc:postgresql://127.0.0.1:8001/chaat_db?user=chaat_dev&password=password"})
+   "jdbc:postgresql://127.0.0.1:8001/chaat_db?user=chaat_dev&password=password"}
+  (rollback (config/get-pg-dbspec))
+  (run-migrations (config/get-pg-dbspec)))

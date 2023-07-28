@@ -93,6 +93,7 @@
 
 (comment
   (def db (:db chaat.app/chaat-system))
+  (create db "shahn" "12345678")
+  (create db "neena" "12345678")
   (authenticate (:result (db.user/get-user-details db "john")) "12345678")
-  (delete db "john")
   (login db "john" "12345678"))
