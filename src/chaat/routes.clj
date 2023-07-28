@@ -13,5 +13,8 @@
         ["users" {:post #(handler/signup db %)
                   :delete (wrap-authentication #(handler/delete-user db %) backend)}]
         ["login" {:post #(handler/login db %)}]
+        ["friend-requests/" {:post {"" (wrap-authentication #(handler/create-friend-request db %) backend)
+                                    [:id "/accept"] (wrap-authentication #(handler/accept-friend-request db %) backend)
+                                    [:id "/reject"] (wrap-authentication #(handler/reject-friend-request db %) backend)}}]
         ["test-page" {:get handler/test-page}]
         [true handler/not-found]]])
