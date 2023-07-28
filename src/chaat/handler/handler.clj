@@ -1,6 +1,7 @@
 (ns chaat.handler.handler
   (:require [ring.util.response :as res]
             [chaat.model.user :as model.user]
+            [chaat.model.friend-request :as friend-request]
             [java-time.api :as jt]
             [chaat.handler.validation :as handler.validation]
             [chaat.db.utils :as db.utils]
@@ -61,6 +62,29 @@
                             (model.user/delete db username))]
     (send-response result)))
 
+;; need handler layer validation
+(defn create-friend-request
+  [db {:keys [params] :as request}]
+  (let [username (:username params)
+        content (select-keys params [:username :recipient :message])
+        result (until-err-> (is-auth-user request username)
+                            (friend-request/create db content))]
+    (send-response result)))
+
+;; need authentication
+(defn accept-friend-request
+  [db {:keys [route-params]}]
+  (let [id (Integer/parseInt (:id route-params))
+        result (friend-request/accept db id)]
+    (send-response result)))
+
+;; need authentication
+(defn reject-friend-request
+  [db {:keys [route-params]}]
+  (let [id (Integer/parseInt (:id route-params))
+        result (friend-request/reject db id)]
+    (send-response result)))
+
 (defn test-page
   "Display the request made to this endpoint for debugging purposes"
   [request]
@@ -73,5 +97,8 @@
 
 (comment
   (def db (:db chaat.app/chaat-system))
-  (is-auth-user {} "shahn")
-  (delete-user))
+  (def params {:username "shahn"
+               :recipient "neena"
+               :message "hola"})
+  (def request {:params params})
+  (create-friend-request db request))
