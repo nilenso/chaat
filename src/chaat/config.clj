@@ -24,13 +24,13 @@
   (:pg-test-dbspec (get-config)))
 
 (defn get-local-port []
-  (:local-port (:app (get-config))))
+  (get-in (get-config) (:app :local-port)))
 
 (defn get-local-test-port []
-  (:local-test-port (:app (get-config))))
+  (get-in (get-config) [:app :local-test-port]))
 
 (defn get-secret []
-  (:secret (:app (get-config))))
+  (get-in (get-config) [:app :secret]))
 
 (comment
   (edn/read (PushbackReader. (io/reader "./resources/config.edn")))
