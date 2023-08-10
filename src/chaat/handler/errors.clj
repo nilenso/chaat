@@ -10,9 +10,9 @@
    :password-format {:msg "Wrong password format"
                      :status-code 400}
    :username-error {:msg "Username or password is incorrect"
-                    :status-code 400}
+                    :status-code 401}
    :password-error {:msg "Username or password is incorrect"
-                    :status-code 400}
+                    :status-code 401}
    :username-exists {:msg "Username already exists"
                      :status-code 409}
    :username-not-exists {:msg "Username does not exist"
