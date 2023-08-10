@@ -62,7 +62,15 @@
             response (handler/login datasource request)]
         (is (= 404 (:status response)))))
 
+    ;; create user john
     (let [_ (handler/signup datasource {:params {:username username :password password}})]
+      (testing "Login fails when password is incorrect"
+        (let [params {:username username
+                      :password "12312312"}
+              request {:params params}
+              response (handler/login datasource request)]
+          (is (= 401 (:status response)))))
+
       (testing "Login is successful when user exists"
         (let [request {:params params}
               response (handler/login datasource request)]
