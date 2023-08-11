@@ -2,7 +2,7 @@
   (:require
    [next.jdbc.sql :as sql]))
 
-;; no try-catch here, ring will catch the exception and return status 500
+;; Failure case is an exception which ring will catch and return status 500
 (defn health-check
   "Check db status"
   [db]

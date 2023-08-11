@@ -33,6 +33,18 @@
       {:result username :error nil}
       {:result nil :error (:username-not-exists error-table)})))
 
+(defn get-user-details
+  "Retrieve user details for given username from user table"
+  [db username]
+  (jdbc/with-transaction [tx (db)]
+    (if (user-exists? tx username)
+      (let [query ["SELECT * FROM users WHERE username = ?" username]
+            query-result (jdbc/execute-one! tx query)]
+        {:result query-result :error nil})
+      {:result nil :error (:username-not-exists error-table)})))
+
 (comment
+  (def db (:db chaat.app/chaat-system))
   (new-user? ((:db chaat.app/chaat-system)) "neena")
-  (user-exists? ((:db chaat.app/chaat-system)) "udit"))
+  (user-exists? ((:db chaat.app/chaat-system)) "udit")
+  (get-user-details db "neena"))

@@ -3,9 +3,15 @@
             [chaat.handler.handler :as handler]
             [java-time.api :as jt]
             [chaat.model.user :as model.user]
-            [chaat.fixture :as fixture]))
+            [chaat.fixture :as fixture]
+            [cheshire.core :as json]
+            [chaat.config :as config]
+            [buddy.sign.jwt :as jwt]))
 
 (use-fixtures :each fixture/test-fixture)
+
+(def stubbed-time "2023-06-13T10:07:03.172Z")
+(defn time-stub [] (jt/instant stubbed-time))
 
 (deftest health-check-test
   (testing "Request to health check endpoint should return status 200"
@@ -44,6 +50,32 @@
             response (handler/signup datasource request)]
         (is (= 409 (:status response)))))))
 
+(deftest login-test
+  (let [datasource (:db fixture/test-system)
+        username "john"
+        password "12345678"
+        params {:username username
+                :password password}]
+
+    (testing "Login fails when user does not exist"
+      (let [request {:params params}
+            response (handler/login datasource request)]
+        (is (= 404 (:status response)))))
+
+    ;; create user john
+    (let [_ (handler/signup datasource {:params {:username username :password password}})]
+      (testing "Login fails when password is incorrect"
+        (let [params {:username username
+                      :password "12312312"}
+              request {:params params}
+              response (handler/login datasource request)]
+          (is (= 401 (:status response)))))
+
+      (testing "Login is successful when user exists"
+        (let [request {:params params}
+              response (handler/login datasource request)]
+          (is (= 200 (:status response))))))))
+
 (deftest delete-user-test
   (let [datasource (:db fixture/test-system)]
     (testing "Missing username in request, delete fails with 400 bad request"
@@ -58,18 +90,27 @@
             response (handler/delete-user datasource request)]
         (is (= 400 (:status response)))))
 
-    (testing "Username parameter present in request,
-              but user does not exist, delete fails with 404 not found"
-      (let [params {:username "john"}
-            request {:params params}
-            response (handler/delete-user datasource request)]
-        (is (= 404 (:status response)))))
+    (let [username "john"
+          password "12345678"
+          params {:username username}
+          identity {:username username}]
 
-    (testing "Username param in request, and user exists, delete succeeds"
-      (let [username "john"
-            password "12345678"
-            _ (handler/signup datasource {:params {:username username :password password}})
-            params {:username "john"}
-            request {:params params}
-            response (handler/delete-user datasource request)]
-        (is (= 200 (:status response)))))))
+      ;; create user john
+      (let [_ (handler/signup datasource {:params {:username username :password password}})]
+        (testing "Unauthorized request, delete fails"
+          (let [request {:params params}
+                response (handler/delete-user datasource request)]
+            (is (= 401 (:status response)))))
+
+        (testing "Authorized request, delete succeeds"
+          (let [request {:params params
+                         :identity identity}
+                response (handler/delete-user datasource request)]
+            (is (= 200 (:status response)))))
+
+        (testing "Authorized request, but user does not exist"
+          (let [params {:username "john"}
+                request {:params params
+                         :identity identity}
+                response (handler/delete-user datasource request)]
+            (is (= 404 (:status response)))))))))

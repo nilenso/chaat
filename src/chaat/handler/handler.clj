@@ -3,16 +3,26 @@
             [chaat.model.user :as model.user]
             [java-time.api :as jt]
             [chaat.handler.validation :as handler.validation]
-            [chaat.errors :refer [do-or-error]]
             [chaat.db.utils :as db.utils]
-            [cheshire.core :as json]))
+            [chaat.errors :refer [do-or-error until-err->]]
+            [cheshire.core :as json]
+            [chaat.handler.errors :refer [error-table]]))
 
 (defn send-response
+  "Construct a response with the correct body and status code"
   [{:keys [result error]}]
   (if-not error
     (res/response (json/encode result))
     (-> (res/response (json/encode (:msg error)))
         (res/status (:status-code error)))))
+
+(defn is-auth-user
+  "Check if username and authenticated identity match"
+  [request username]
+  (let [auth-user (get-in request [:identity :username])]
+    (if (= auth-user username)
+      {:result username :error nil}
+      {:result nil :error (:unauthorized-action error-table)})))
 
 (defn home
   "Respond with a greeting/welcome"
@@ -30,17 +40,25 @@
   [db request]
   (let [params (:params request)
         {:keys [username password]} params
-        result (handler.validation/validate-signup-details username password)
+        result (handler.validation/validate-credentials username password)
         result (do-or-error result model.user/create db username password)]
     (send-response result)))
 
+(defn login
+  "Authenticate username and password, and return JWT if credentials are correct"
+  [db {:keys [params]}]
+  (let [{:keys [username password]} params
+        result (until-err-> (handler.validation/validate-credentials username password)
+                            (model.user/login db username password))]
+    (send-response result)))
+
 (defn delete-user
-  "Delete a user account"
-  [db request]
-  (let [params (:params request)
-        username (:username params)
-        result (handler.validation/validate-username username)
-        result (do-or-error result model.user/delete db username)]
+  "Delete username if authenticated as username"
+  [db {:keys [params] :as request}]
+  (let [username (:username params)
+        result (until-err-> (handler.validation/validate-username username)
+                            (is-auth-user request username)
+                            (model.user/delete db username))]
     (send-response result)))
 
 (defn test-page
@@ -52,3 +70,8 @@
   "Catch-all not-found page"
   [request]
   (res/not-found "Resource does not exist"))
+
+(comment
+  (def db (:db chaat.app/chaat-system))
+  (is-auth-user {} "shahn")
+  (delete-user))
